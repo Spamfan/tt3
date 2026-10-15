@@ -1,10 +1,14 @@
 # Tank Tycoon (prototype 3)
 ### tt3
-### Living Design Document (LDD) V4
+### Living Design Document (LDD) V5
 
 ---
 
 ### 1. WATERFALL PROTOCOL & DUAL DELIVERY
+
+#### Supreme Governance Mandate
+* `md-spec-project.md` is the supreme governing rulebook for all LLM-PL collaboration across Mode A and Mode B.
+* All gate rules, inbound checks, version ceilings, and delivery constraints override default assistant behavior.
 
 #### The Loop
 1. **Sprint Plan (SP):** Scope & target files.  
@@ -185,15 +189,20 @@ Replace with
 * **Top-Anchor Tactical HUD:**  
   * Top-Left: Discrete `v0.0.1` label (tap -> manifest).  
   * Top-Center: Segmented HP bar (`100/100`), live  
-    cash counter (`$0.00`), tactical SVG inventory pouch.  
+    cash counter (`$0.00`), tactical SVG inventory pouch  
+    (`.hud-btn-inventory` tap opens `.modal-inventory`  
+    to inspect Steel, Copper, Aluminum and trigger  
+    2x2 `base_block` placement at 10 Steel).  
   * Top-Right: Pause SVG button (`||`).  
 * **Fullscreen & Safe Area:** Fullscreen toggle via  
   `requestFullscreen()` with iOS WebKit fallback  
   and `env(safe-area-inset-top)` notch padding.  
 * **Juicy Custom Pause Modal:** Halo Reach styled  
-  dialogue with Resume button, SFX toggle, Settings,  
-  caution "Reset World" (custom confirmation modal),  
-  and Alphabetical Repo Manifest dropdown.  
+  dialogue with Resume button, SFX toggle (persisted  
+  state-only `sfxEnabled` boolean stub in v0.0.1 until  
+  Web Audio synth is added in a future sprint),  
+  Settings, caution "Reset World" (custom confirmation  
+  modal), and Alphabetical Repo Manifest dropdown.  
 * **Icons & Feedback:** Inline SVGs only across UI.  
   CSS keyframe spinners on async actions.  
 * **4-Way Modal Dismissal & History Trapping:**  
@@ -207,6 +216,14 @@ Replace with
 * **Prefix & Flat Root Mandate:** All files live  
   at root. `js-` for scripts, `md-` for specs,  
   `styles.css` for styles, `index.html` for shell.  
+  App hosts publicly at `spamfan.github.io/tt3`;  
+  all HTML/CSS/module paths must use strict relative  
+  prefixes (`./file.ext?v=0.0.1`), never root-relative.  
+* **Modular Scalability Mandate:** All subsystems  
+  must remain loosely coupled via event-bus hooks  
+  and extensible schema registries to support large-  
+  scale expansions (custom tank skins, new biome  
+  generators, active abilities, and base stations).  
 * **Fixed Timestep Accumulator (60–144Hz):** Game  
   physics strictly step at `1/60s` (`FIXED_STEP`).  
   `requestAnimationFrame` feeds accumulator with  
@@ -221,6 +238,9 @@ Replace with
 * **Procedural Chunking:** Deterministic seeded grid  
   (`16x16` tiles, `48x48px`). Safe spawn at `(0, 0)`;  
   enemy density & harsh biomes scale radially outward.  
+  `worldSeed` is randomly generated on first boot,  
+  persisted in IndexedDB, and re-rolled only on  
+  Reset World.  
 * **Terrain Speeds:** Grass (`1.0x`), Sand/Gravel  
   (`0.7x`), Water (`0.25x`, blocks base placement),  
   Dirt patches. Zero wild scrap crate clutter.  
@@ -236,9 +256,9 @@ Replace with
   persistent Salvage Crate at death coordinates.  
   No respawn pad = Game Over modal.  
 * **Base Building:** Unlocked at 10 Steel. 2x2 tank  
-  concrete slab on grid. Contextual bottom-right  
-  interact button on base entry. Respawn Point upgrade  
-  costs 5 Steel + $25 (adds white/green plus pad).  
+  concrete slab on grid. Standing on a placed base slab  
+  reveals `.hud-btn-interact` to upgrade that slab into  
+  a Respawn Pad (5 Steel + $25, adds white/green plus pad).  
 * **State Persistence:** IndexedDB storage for world  
   seed, discovered chunks, player inventory, and bases.  
 * **Target Benchmark Hardware Matrix:**  
@@ -270,12 +290,12 @@ Replace with
 * **`js-state-storage.js`:** `v0.0.1`  
 * **`js-ui-controller.js`:** `v0.0.1`  
 * **`md-spec-physics.md`:** `V1`  
-* **`md-spec-project.md`:** `V4`  
+* **`md-spec-project.md`:** `V5`  
 * **`md-spec-render.md`:** `V1`  
-* **`md-spec-storage.md`:** `V1`  
+* **`md-spec-storage.md`:** `V2`  
 * **`md-spec-tank.md`:** `V1`  
-* **`md-spec-ui.md`:** `V1`  
-* **`md-spec-world.md`:** `V1`  
+* **`md-spec-ui.md`:** `V2`  
+* **`md-spec-world.md`:** `V2`  
 * **`styles.css`:** `v0.0.1`  
 
 #### File Tree

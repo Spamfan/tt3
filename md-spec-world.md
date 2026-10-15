@@ -1,6 +1,6 @@
 # World Generation & Chunking Specification
 ### Sub-Spoke Specification: js-engine-world.js
-### Version V1
+### Version V2
 
 ---
 
@@ -30,9 +30,11 @@ Generates a deterministic procedural world based on coordinate chunking and pseu
 
 #### `initWorld(worldSeed)`
 * Instantiates deterministic noise generator using integer/string seed.
+* `worldSeed` comes from the randomized string persisted in `player_state` (and only re-rolls when Reset World wipes storage).
 
 #### `getChunk(chunkX, chunkY)`
 * Returns cached chunk from memory/IndexedDB or generates it deterministically.
+* Chunks include a persisted `clearedEnemies` boolean flag so cleared hostile chunks do not respawn enemies after reload.
 * **Radial Difficulty Generation:**
   * Distance: `radius = Math.sqrt(chunkX * chunkX + chunkY * chunkY)`.
   * Safe Zone (`radius <= 2` chunks): Peaceful grass clearing, occasional rivers/lakes, sand borders. Zero hostile tanks.
@@ -46,6 +48,8 @@ Generates a deterministic procedural world based on coordinate chunking and pseu
 * Snaps to 2x2 tank dimensions (`96x96` px = 2x2 tiles).
 * Validates terrain: returns `false` if any underlying tile is `TILE_WATER`.
 * Converts underlying tiles to `TILE_BASE_CONCRETE` and persists modification.
+* Companion helper `canPlaceBaseBlock(gx, gy)`: Rejects `TILE_WATER` and existing base tiles.
+* Companion helper `upgradeBaseBlockToRespawn(block)`: Sets 2x2 slab tiles to `TILE_BASE_RESPAWN = 5`.
 
 #### `calculateEnemyLoot(enemyTank, playerHP)`
 * Computes enemy drops upon destruction (1–2 items total):

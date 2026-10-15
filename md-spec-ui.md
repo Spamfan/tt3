@@ -1,6 +1,6 @@
 # UI, HUD & Input Controller Specification
 ### Sub-Spoke Specification: js-ui-controller.js / styles.css
-### Version V1
+### Version V2
 
 ---
 
@@ -22,6 +22,9 @@ Governs the DOM-based tactical HUD overlay, dual touch-joystick mobile controls,
 * `.skeleton-box`: Dark carbon wireframe shimmer (`#161b24` to `#222b3a` linear gradient pulse at 1.4s cycle) for modal loading and save hydration.
 * `.modal-pause`: Centered dark carbon slate container with chamfered borders.
 * `.modal-manifest`: Alphabetical table listing all repository modules and current versions.
+* `.modal-inventory`: Scrap bay & fabrication modal showing Steel, Copper, and Aluminum counters plus `#btn-craft-base` (10 Steel `base_block` placement trigger).
+* `.modal-confirm-reset`: Custom confirmation dialogue opened from the Pause menu's caution "Reset World" button.
+* `.modal-gameover`: Game Over dialogue triggered when player HP reaches 0 with zero active Respawn Pads on the grid.
 
 ---
 
@@ -29,6 +32,9 @@ Governs the DOM-based tactical HUD overlay, dual touch-joystick mobile controls,
 
 #### `initUI(eventBus)`
 * Mounts HUD elements, binds pointer/touch events, and configures modal dismissals.
+* `.hud-btn-inventory` opens `.modal-inventory` to craft and enter `base_block` placement.
+* `.hud-btn-interact` upgrades the occupied concrete slab to a `respawn_pad` (5 Steel + $25) or confirms placement while placement mode is active.
+* `#btn-sfx-toggle` inside `.modal-pause` toggles `player.sfxEnabled` as a persisted state-only stub (`ON (Stub)` / `MUTED (Stub)`).
 
 #### `initInputListeners()`
 * **Desktop Input:**

@@ -1,6 +1,6 @@
 # State Storage & Persistence Specification
 ### Sub-Spoke Specification: js-state-storage.js
-### Version V1
+### Version V2
 
 ---
 
@@ -14,7 +14,7 @@ Manages asynchronous client-side persistence through IndexedDB. Guarantees deter
 * `DB_VERSION = 1`
 * Object Stores:
   1. `world_chunks`: KeyPath `chunkKey` (`"x,y"`). Stores tile modifications and placed structures.
-  2. `player_state`: KeyPath `"id"`. Stores health, cash, steel, copper, aluminum, and unlock state.
+  2. `player_state`: KeyPath `"id"`. Persists `hp`, `maxHp`, `cash`, `steel`, `copper`, `aluminum`, `recipes`, coordinates (`x`, `y`, `chassisAngle`, `turretAngle`), `worldSeed` (randomized seed string), `sfxEnabled` (boolean stub), and forward hooks (`armorLevel`, `specialAbility`, `chassisCustomization`, `stationSlots`).
   3. `salvage_crates`: KeyPath `"crateId"`. Stores dropped inventory crates with world coordinates.
   4. `base_blocks`: KeyPath `"blockId"`. Stores placed base slabs, coordinates, and respawn pad upgrades.
 
@@ -34,10 +34,13 @@ Manages asynchronous client-side persistence through IndexedDB. Guarantees deter
   * Respawn pad upgrade.
   * Player death or salvage retrieval.
 
+#### `generateWorldSeed()`
+* Generates a randomized seed string (`TT3-<RAND>-<TIME>`) for new worlds and resets.
+
 #### `loadGameState()`
 * Restores player coordinates, resources, discovered chunks, active base blocks, and salvage crates.
-* Returns null if no prior save exists (triggers fresh spawn at `(0, 0)`).
+* Returns `null` if no prior save exists so `js-main.js` initializes a fresh randomized `worldSeed` at `(0, 0)`.
 
 #### `wipeSaveData()`
-* Clears all IndexedDB object stores.
-* Deletes player save record and forces hard re-initialization of baseline `v0.0.1` world.
+* Clears all 4 IndexedDB object stores.
+* Deletes player save record and returns a newly generated random `worldSeed` for immediate re-initialization at `(0, 0)`.
