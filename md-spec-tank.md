@@ -1,6 +1,6 @@
 # Player & Enemy Tank Subsystem Specification
 ### Sub-Spoke Specification: js-state-player.js
-### Version v0.0.1
+### Version V1
 
 ---
 

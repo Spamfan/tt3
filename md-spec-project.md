@@ -1,6 +1,6 @@
 # Tank Tycoon (prototype 3)
 ### tt3
-### Living Design Document (LDD) V3
+### Living Design Document (LDD) V4
 
 ---
 
@@ -194,6 +194,8 @@ Replace with
   dialogue with Resume button, SFX toggle, Settings,  
   caution "Reset World" (custom confirmation modal),  
   and Alphabetical Repo Manifest dropdown.  
+* **Icons & Feedback:** Inline SVGs only across UI.  
+  CSS keyframe spinners on async actions.  
 * **4-Way Modal Dismissal & History Trapping:**  
   Dismiss via close button, backdrop tap, `Escape`,  
   or browser back button (`popstate` via `pushState`).  
@@ -209,9 +211,13 @@ Replace with
   physics strictly step at `1/60s` (`FIXED_STEP`).  
   `requestAnimationFrame` feeds accumulator with  
   render interpolation. Eliminates high-Hz desync.  
-* **Cache-Busting Ripple:** Imports must pin version  
-  query strings (`./js-module.js?v=0.0.1`). Any module  
-  bump cascades to `index.html` and `js-main.js`.  
+* **Cache-Busting & Downstream Ripple Mandate:**  
+  Submodule imports must pin version query strings  
+  (`./js-module.js?v=0.0.1`). Any submodule bump cascades  
+  to downstream consumers `index.html`, `js-main.js`, and  
+  `js-manifest.js`. Static assets must bind to host version  
+  tokens (`?v=${MODULE_VERSION}`). Updating an asset under  
+  the same filename mandates a version bump to bust caching.  
 * **Procedural Chunking:** Deterministic seeded grid  
   (`16x16` tiles, `48x48px`). Safe spawn at `(0, 0)`;  
   enemy density & harsh biomes scale radially outward.  
@@ -241,6 +247,12 @@ Replace with
   * High-Refresh: Pixel 9 Pro XL & iPhone 16 Pro (120Hz),  
     Motorola Edge 2024 & Gaming PC Displays (144Hz).  
   * Invariant: Fixed 60Hz physics step across all tiers.  
+* **Data Ordering & Determinism:** Tables, catalog listings,  
+  and serialized state must maintain deterministic ordering  
+  (e.g. strict alphabetical sorting by primary key).  
+* **Terminology & Lexicon Guard:** Enforce strict domain  
+  lexicon across UI and code (e.g. scrap resources: `Steel`,  
+  `Copper`, `Aluminum`; currency: `Cash`; avoid generic terms).  
 
 ---
 
@@ -257,7 +269,13 @@ Replace with
 * **`js-state-player.js`:** `v0.0.1`  
 * **`js-state-storage.js`:** `v0.0.1`  
 * **`js-ui-controller.js`:** `v0.0.1`  
-* **`md-spec-project.md`:** `V3`  
+* **`md-spec-physics.md`:** `V1`  
+* **`md-spec-project.md`:** `V4`  
+* **`md-spec-render.md`:** `V1`  
+* **`md-spec-storage.md`:** `V1`  
+* **`md-spec-tank.md`:** `V1`  
+* **`md-spec-ui.md`:** `V1`  
+* **`md-spec-world.md`:** `V1`  
 * **`styles.css`:** `v0.0.1`  
 
 #### File Tree
@@ -302,5 +320,6 @@ the corresponding spec from root:
   the LLM must ask the user to attach it before starting.  
   Furthermore, whenever a sub-spoke bump occurs,  
   the LLM must explicitly mandate the intake upload of  
-  the main entry script and host HTML shell during intake  
-  to guarantee end-to-end cache busting.  
+  the main entry script (`js-main.js`), host HTML shell  
+  (`index.html`), and repo manifest (`js-manifest.js`)  
+  during intake to guarantee end-to-end cache busting.  

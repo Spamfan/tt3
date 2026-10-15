@@ -1,6 +1,6 @@
 # State Storage & Persistence Specification
 ### Sub-Spoke Specification: js-state-storage.js
-### Version v0.0.1
+### Version V1
 
 ---
 

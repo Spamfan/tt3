@@ -1,6 +1,6 @@
 # UI, HUD & Input Controller Specification
 ### Sub-Spoke Specification: js-ui-controller.js / styles.css
-### Version v0.0.1
+### Version V1
 
 ---
 

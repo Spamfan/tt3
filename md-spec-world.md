@@ -1,6 +1,6 @@
 # World Generation & Chunking Specification
 ### Sub-Spoke Specification: js-engine-world.js
-### Version v0.0.1
+### Version V1
 
 ---
 

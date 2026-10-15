@@ -1,6 +1,6 @@
 # Canvas Rendering Subsystem Specification
 ### Sub-Spoke Specification: js-engine-render.js
-### Version v0.0.1
+### Version V1
 
 ---
 
