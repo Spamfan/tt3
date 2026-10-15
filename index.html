@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<!-- Tank Tycoon (prototype 3) - index.html (v0.0.1) -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  />
+  <title>Tank Tycoon (prototype 3) — v0.0.1</title>
+  <link rel="stylesheet" href="./styles.css?v=0.0.1" />
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Floating Mobile Touch Joystick Indicator -->
+  <div id="joystick-ring" class="joystick-ring">
+    <div id="joystick-nub" class="joystick-nub"></div>
+  </div>
+
+  <!-- Tactical HUD Overlay -->
+  <div class="hud-container">
+    <header class="hud-top-bar">
+      <button
+        type="button"
+        class="hud-version skeleton-box"
+        title="Open Repository Manifest"
+      >
+        v0.0.1
+      </button>
+
+      <div class="hud-center-cluster skeleton-box">
+        <div class="hud-health-bar" aria-label="Player Health">
+          <div class="hud-health-fill"></div>
+          <span class="hud-health-text">100/100</span>
+        </div>
+
+        <div class="hud-cash">$0.00</div>
+
+        <button
+          type="button"
+          class="hud-btn-inventory"
+          title="Scrap Inventory & Base Crafting"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M7 4h10l3 5v11H4V9l3-5zm1.6 2L6.8 9h10.4l-1.8-3H8.6zM9 13v2h6v-2H9z"
+            />
+          </svg>
+          <span class="hud-inv-badge">0</span>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="hud-btn-pause skeleton-box"
+        title="Pause Tactical Menu"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 5h4v14H6V5zm8 0h4v14h-4V5z" />
+        </svg>
+      </button>
+    </header>
+
+    <div id="hud-toast-banner" class="hud-toast-banner" role="status">
+      TACTICAL LINK ONLINE
+    </div>
+
+    <button type="button" class="hud-btn-interact">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7V4z" />
+      </svg>
+      <span class="hud-btn-interact-label">UPGRADE RESPAWN PAD</span>
+    </button>
+  </div>
+
+  <!-- Halo Reach Styled Pause Modal -->
+  <div
+    id="modal-pause"
+    class="modal-backdrop modal-pause"
+    aria-hidden="true"
+  >
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Tactical Pause // TT3</span>
+        <button type="button" class="modal-close-btn" data-modal-close>
+          RESUME
+        </button>
+      </div>
+
+      <div
+        id="hud-seed-readout"
+        style="font-family: monospace; font-size: 0.75rem; color: #94a3b8"
+      >
+        Seed: Initializing...
+      </div>
+
+      <button type="button" class="tactical-btn" data-modal-close>
+        <span>Resume Combat</span>
+        <span>&#9654;</span>
+      </button>
+
+      <button type="button" id="btn-sfx-toggle" class="tactical-btn">
+        <span>SFX Audio: ON (Stub)</span>
+        <span>&#9835;</span>
+      </button>
+
+      <button type="button" id="btn-fullscreen-toggle" class="tactical-btn">
+        <span>Settings: Toggle Fullscreen</span>
+        <span>&#x26F6;</span>
+      </button>
+
+      <details class="manifest-details">
+        <summary>Alphabetical Repo Manifest (v0.0.1)</summary>
+        <div class="manifest-table-wrap">
+          <table class="manifest-table">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Version</th>
+              </tr>
+            </thead>
+            <tbody data-manifest-tbody></tbody>
+          </table>
+        </div>
+      </details>
+
+      <button
+        type="button"
+        id="btn-open-reset-modal"
+        class="tactical-btn caution"
+      >
+        <span>Reset World (Wipe Save)</span>
+        <span>&#9888;</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Standalone Alphabetical Repo Manifest Modal (Top-Left v0.0.1 Trigger) -->
+  <div
+    id="modal-manifest"
+    class="modal-backdrop modal-manifest"
+    aria-hidden="true"
+  >
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Repo Manifest // v0.0.1</span>
+        <button type="button" class="modal-close-btn" data-modal-close>
+          CLOSE
+        </button>
+      </div>
+      <div class="manifest-table-wrap">
+        <table class="manifest-table">
+          <thead>
+            <tr>
+              <th>Repository File</th>
+              <th>Version</th>
+            </tr>
+          </thead>
+          <tbody data-manifest-tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scrap Inventory & Base Crafting Modal -->
+  <div
+    id="modal-inventory"
+    class="modal-backdrop modal-inventory"
+    aria-hidden="true"
+  >
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Scrap Bay & Fabrication</span>
+        <button type="button" class="modal-close-btn" data-modal-close>
+          CLOSE
+        </button>
+      </div>
+
+      <div class="resource-grid">
+        <div class="resource-cell">
+          <div class="resource-label">Steel</div>
+          <div id="inv-steel-count" class="resource-val">0</div>
+        </div>
+        <div class="resource-cell">
+          <div class="resource-label">Copper</div>
+          <div id="inv-copper-count" class="resource-val">0</div>
+        </div>
+        <div class="resource-cell">
+          <div class="resource-label">Aluminum</div>
+          <div id="inv-aluminum-count" class="resource-val">0</div>
+        </div>
+      </div>
+
+      <button type="button" id="btn-craft-base" class="tactical-btn">
+        Locked: Need 10 Steel (0/10)
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Reset World Confirmation Modal -->
+  <div
+    id="modal-confirm-reset"
+    class="modal-backdrop modal-confirm-reset"
+    aria-hidden="true"
+  >
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title" style="color: #ffb703">
+          Confirm World Reset
+        </span>
+        <button type="button" class="modal-close-btn" data-modal-close>
+          CANCEL
+        </button>
+      </div>
+      <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.4">
+        Wiping save data clears all IndexedDB stores, placed base slabs, and
+        salvage crates, and rolls a fresh randomized world seed at (0, 0).
+      </p>
+      <button
+        type="button"
+        id="btn-confirm-reset"
+        class="tactical-btn danger"
+      >
+        <span>Confirm Wipe &amp; Re-Seed</span>
+        <span>&#10006;</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Over Modal (Triggered on Death with Zero Respawn Pads) -->
+  <div
+    id="modal-gameover"
+    class="modal-backdrop modal-gameover"
+    aria-hidden="true"
+  >
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title" style="color: #e63946">
+          CHASSIS DESTROYED // NO RESPAWN PAD
+        </span>
+      </div>
+      <p style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.4">
+        Your tank was destroyed without an active Respawn Pad on the grid.
+      </p>
+      <button
+        type="button"
+        id="btn-gameover-reset"
+        class="tactical-btn caution"
+      >
+        <span>Deploy Fresh World</span>
+        <span>&#8635;</span>
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="./js-main.js?v=0.0.1"></script>
+</body>
+</html>
