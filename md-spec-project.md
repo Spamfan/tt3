@@ -1,6 +1,6 @@
 # Tank Tycoon (prototype 3)
 ### tt3
-### Living Design Document (LDD) V7
+### Living Design Document (LDD) V8
 
 ---
 
@@ -181,19 +181,23 @@ Replace with
 
 ### 4. GLOBAL UI & NAVIGATION
 
-* **Halo Reach Sci-Fi Aesthetic:** Dark carbon  
-  slate surfaces (`#0b0e14`, `#161b24`), cyan accents  
-  (`#00f0ff`), hazard amber (`#ffb703`), vitality green  
-  (`#2ec4b6`), alert crimson (`#e63946`). Chamfered  
-  borders via CSS `clip-path: polygon(...)`.  
+* **Photorealistic Tactical Aesthetic:** Dark slate  
+  surfaces (`#12171e`, `#1b222d`), muted tactical olive  
+  moss terrain (`#475422`), natural beach sand contours  
+  (`#cbb185`), deep lake slate (`#182633`), steel-blue  
+  player hull, desert khaki enemies. Subtle borders  
+  without saturated neon glows.  
 * **Top-Anchor Tactical HUD:**  
-  * Top-Left: Discrete `v0.0.1` label (tap -> manifest).  
-  * Top-Center: Segmented HP bar (`100/100`), live  
+  * Top-Left: Discreet borderless monospace watermark  
+    `v0.0.4` (tap -> manifest).  
+  * Top-Center: Compact dark HP bar (`100/100`), live  
     cash counter (`$0.00`), tactical SVG inventory pouch  
     (`.hud-btn-inventory` tap opens `.modal-inventory`  
     to inspect Steel, Copper, Aluminum and trigger  
     2x2 `base_block` placement at 10 Steel).  
   * Top-Right: Pause SVG button (`||`).  
+* **Camera Scale & Zoom:** `CAMERA_ZOOM = 0.8` (+25%  
+  visible world area for tactical awareness).  
 * **Fullscreen & Safe Area:** Fullscreen toggle via  
   `requestFullscreen()` with iOS WebKit fallback  
   and `env(safe-area-inset-top)` notch padding.  
@@ -279,24 +283,24 @@ Replace with
 ### 6. BASELINE FLOOR & FILE TREE
 
 #### Version Floor
-* **App (Tank Tycoon [prototype 3]):** `v0.0.3`  
-* **`index.html`:** `v0.0.3`  
+* **App (Tank Tycoon [prototype 3]):** `v0.0.4`  
+* **`index.html`:** `v0.0.4`  
 * **`js-engine-physics.js`:** `v0.0.3`  
-* **`js-engine-render.js`:** `v0.0.1`  
-* **`js-engine-world.js`:** `v0.0.1`  
-* **`js-main.js`:** `v0.0.3`  
-* **`js-manifest.js`:** `v0.0.3`  
+* **`js-engine-render.js`:** `v0.0.2`  
+* **`js-engine-world.js`:** `v0.0.2`  
+* **`js-main.js`:** `v0.0.4`  
+* **`js-manifest.js`:** `v0.0.4`  
 * **`js-state-player.js`:** `v0.0.1`  
 * **`js-state-storage.js`:** `v0.0.1`  
 * **`js-ui-controller.js`:** `v0.0.2`  
 * **`md-spec-physics.md`:** `V2`  
-* **`md-spec-project.md`:** `V7`  
-* **`md-spec-render.md`:** `V1`  
+* **`md-spec-project.md`:** `V8`  
+* **`md-spec-render.md`:** `V2`  
 * **`md-spec-storage.md`:** `V2`  
 * **`md-spec-tank.md`:** `V1`  
 * **`md-spec-ui.md`:** `V3`  
-* **`md-spec-world.md`:** `V2`  
-* **`styles.css`:** `v0.0.2`  
+* **`md-spec-world.md`:** `V3`  
+* **`styles.css`:** `v0.0.3`  
 
 #### File Tree
 * `index.html`

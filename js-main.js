@@ -1,10 +1,10 @@
-// Tank Tycoon (prototype 3) - js-main.js (v0.0.3)
+// Tank Tycoon (prototype 3) - js-main.js (v0.0.4)
 // Master Coordinator, Fixed-Step Accumulator Loop & Submodule Router
 
 import {
   MODULE_VERSION as MANIFEST_VERSION,
   getManifestData
-} from "./js-manifest.js?v=0.0.3";
+} from "./js-manifest.js?v=0.0.4";
 import {
   initStorage,
   loadGameState,
@@ -28,14 +28,15 @@ import {
   placeBaseBlock,
   upgradeBaseBlockToRespawn,
   getBaseBlockAtWorldPos
-} from "./js-engine-world.js?v=0.0.1";
+} from "./js-engine-world.js?v=0.0.2";
 import {
   updatePhysics
 } from "./js-engine-physics.js?v=0.0.3";
 import {
   initRenderer,
-  renderFrame
-} from "./js-engine-render.js?v=0.0.1";
+  renderFrame,
+  CAMERA_ZOOM
+} from "./js-engine-render.js?v=0.0.2";
 import {
   initUI,
   initInputListeners,
@@ -44,7 +45,7 @@ import {
   showToastBanner
 } from "./js-ui-controller.js?v=0.0.2";
 
-export const MODULE_VERSION = "v0.0.3";
+export const MODULE_VERSION = "v0.0.4";
 
 function createEventBus() {
   const listeners = new Map();
@@ -299,8 +300,8 @@ async function bootApp() {
       if (!gameState.placementState.active) return;
       const halfW = window.innerWidth / 2;
       const halfH = window.innerHeight / 2;
-      const worldX = screenX - halfW + gameState.camera.x;
-      const worldY = screenY - halfH + gameState.camera.y;
+      const worldX = (screenX - halfW) / CAMERA_ZOOM + gameState.camera.x;
+      const worldY = (screenY - halfH) / CAMERA_ZOOM + gameState.camera.y;
       gameState.placementState.gridOriginX = Math.floor(worldX / TILE_SIZE) - 1;
       gameState.placementState.gridOriginY = Math.floor(worldY / TILE_SIZE) - 1;
     },

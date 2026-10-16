@@ -1,6 +1,6 @@
 # Canvas Rendering Subsystem Specification
 ### Sub-Spoke Specification: js-engine-render.js
-### Version V1
+### Version V2
 
 ---
 
@@ -10,18 +10,23 @@ The rendering engine provides hardware-accelerated 2D canvas drawing, dynamic ca
 ---
 
 ### 2. RENDER CONSTANTS & TOKENS
+* `CAMERA_ZOOM = 0.8` (renders 1.25x world area, expanding visible battlefield by 25%).
 * `VIEWPORT_BUFFER_CHUNKS = 1` (margin around frustum for seamless scrolling).
-* `TRAJECTORY_LENGTH = 192` px (fading dotted line extending 3–4 tank lengths from muzzle).
+* `TRAJECTORY_LENGTH = 230` px (faint white dashed line extending from muzzle).
 * `CAMERA_LERP = 0.08` (smooth position follow).
 * `CAMERA_LOOKAHEAD = 45` px (directional lead along tank velocity vector).
 * Palette Tokens:
-  * Background / Canvas: `#0b0e14`
+  * Background / Canvas: `#12171e`
+  * Grass (Muted Military Moss): `#475422`
+  * Sand / Beach (Contoured Shore): `#cbb185`
+  * Water (Dark Pond Slate): `#182633`
+  * Dirt (Basalt Loam): `#635c49`
+  * Player Tank Hull / Turret: `#465866` / `#5a6f7e`
+  * Enemy Tank Hull / Turret: `#8a7b70` / `#9e8e82`
   * HUD Accent Cyan: `#00f0ff`
   * Vitality Green: `#2ec4b6`
   * Hazard Amber: `#ffb703`
   * Alert Crimson: `#e63946`
-  * Ghost Placement Valid: `rgba(0, 240, 255, 0.45)`
-  * Ghost Placement Invalid: `rgba(230, 57, 70, 0.45)`
 
 ---
 
@@ -36,16 +41,18 @@ The rendering engine provides hardware-accelerated 2D canvas drawing, dynamic ca
 * Interpolates current and previous physics positions using `alpha` to ensure smooth 144 FPS rendering.
 
 #### `renderWorld(camera, chunks)`
-* Calculates active screen bounding box transformed into world coordinates.
-* Draws visible terrain tiles using pre-rendered offscreen canvas pattern tiles.
+* Calculates active screen bounding box transformed into world coordinates with `1 / CAMERA_ZOOM` culling margin.
+* Draws seamless terrain tiles using pre-rendered offscreen canvas pattern tiles without square tile borders.
 
 #### `renderTanks(camera, player, enemies)`
+* Renders soft elliptical under-chassis drop shadow for realistic visual depth.
 * Renders tread tracks, chassis base (rotated to chassis heading), and independent turret (rotated to aim vector).
 * Applies recoil displacement offset along barrel axis during firing frames.
 
 #### `renderCombatFX(camera, projectiles, particles)`
-* **Trajectory Guide:** Draws faint dotted line from player turret muzzle extending 3–4 tank lengths, terminating with subtle lead dot.
+* **Trajectory Guide:** Draws faint white dashed line from player turret muzzle terminating with subtle reticle dot.
 * **Muzzle Sparks & Casings:** Spawns short-lived spark bursts at muzzle; renders brass shell casings flying perpendicular to barrel with rotational spin and decay.
+* **Pickups:** Renders bright green currency badge with glow aura matching realistic reference.
 * **Floating Text:** Renders rising damage numbers (`-10 HP`) and scrap notifications (`+1 STEEL`) with alpha fade.
 
 #### `renderPlacementGhost(camera, placementState)`

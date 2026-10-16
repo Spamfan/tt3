@@ -1,6 +1,6 @@
 # World Generation & Chunking Specification
 ### Sub-Spoke Specification: js-engine-world.js
-### Version V2
+### Version V3
 
 ---
 
@@ -13,12 +13,13 @@ Generates a deterministic procedural world based on coordinate chunking and pseu
 * `CHUNK_TILES = 16` (16x16 tiles per chunk).
 * `TILE_SIZE = 48` px (chunk footprint: `768x768` px).
 * Tile Definitions:
-  * `0: TILE_GRASS` - Bright stylized green (`#38b000`, `#70e000`). Speed `1.0x`. Passable. Buildable.
-  * `1: TILE_DIRT` - Packed earth path (`#b79257`). Speed `1.0x`. Passable. Buildable.
-  * `2: TILE_SAND` - Coastline gravel/sand (`#e9d8a6`). Speed `0.7x`. Passable. Buildable.
-  * `3: TILE_WATER` - Lake/river blue (`#0077b6`). Speed `0.25x`. Passable (crawl). Buildable: NO.
-  * `4: TILE_BASE_CONCRETE` - Industrial concrete (`#4a5568`). Speed `1.0x`. Passable. Buildable: YES.
-  * `5: TILE_BASE_RESPAWN` - Concrete with white/green plus pad. Speed `1.0x`. Passable. Buildable: NO.
+  * `0: TILE_GRASS` - Muted olive/moss field (`#475422`). Speed `1.0x`. Passable. Buildable.
+  * `1: TILE_DIRT` - Basalt carbon loam (`#635c49`). Speed `1.0x`. Passable. Buildable.
+  * `2: TILE_SAND` - Natural contoured shore tan (`#cbb185`). Speed `0.7x`. Passable. Buildable.
+  * `3: TILE_WATER` - Dark pond/lake navy (`#182633`). Speed `0.25x`. Passable (crawl). Buildable: NO.
+  * `4: TILE_BASE_CONCRETE` - Reinforced matte slab (`#252b36`). Speed `1.0x`. Passable. Buildable: YES.
+  * `5: TILE_BASE_RESPAWN` - Matte slab with medical plus pad. Speed `1.0x`. Passable. Buildable: NO.
+* **Procedural Curving Generation:** Broad multi-octave noise generator (octave 1 wavelength 42.0 tiles, octave 2 wavelength 18.0 tiles) creating natural organic lake basins and smooth shoreline bands.
 * **Reserved Biome ID Ranges:**
   * `10–19: BIOME_DESERT` - Dune sand (`0.6x` speed), cactus obstacles, outposts.
   * `20–29: BIOME_WASTELAND` - Radiation slag (`0.4x` speed), scrap craters, heavy enemies.

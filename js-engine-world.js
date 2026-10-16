@@ -1,7 +1,7 @@
-// Tank Tycoon (prototype 3) - js-engine-world.js (v0.0.1)
+// Tank Tycoon (prototype 3) - js-engine-world.js (v0.0.2)
 // World Generation, Seeded Chunking, Base Placement & Loot Subsystem
 
-export const MODULE_VERSION = "v0.0.1";
+export const MODULE_VERSION = "v0.0.2";
 
 export const CHUNK_TILES = 16;
 export const TILE_SIZE = 48;
@@ -124,28 +124,29 @@ export function getChunk(chunkX, chunkY, worldState = activeWorldState) {
       const distFromOriginTiles = Math.hypot(worldTileX, worldTileY);
 
       // Guaranteed dry clearing around spawn (0, 0)
-      if (distFromOriginTiles < 5) {
+      if (distFromOriginTiles < 6) {
         tiles[ty * CHUNK_TILES + tx] = TILE_GRASS;
         continue;
       }
 
+      // Broad multi-octave noise generating natural curving lakes and smooth shore contours
       const elevation =
-        valueNoise2D(worldTileX, worldTileY, 10.5, world.seedInt) * 0.7 +
-        valueNoise2D(worldTileX, worldTileY, 4.2, world.seedInt ^ 0x9e3779b9) * 0.3;
+        valueNoise2D(worldTileX, worldTileY, 42.0, world.seedInt) * 0.75 +
+        valueNoise2D(worldTileX, worldTileY, 18.0, world.seedInt ^ 0x9e3779b9) * 0.25;
 
       const pathNoise = valueNoise2D(
         worldTileX + 100,
         worldTileY - 100,
-        7.0,
+        14.0,
         world.seedInt ^ 0x85ebca6b
       );
 
       let tileId = TILE_GRASS;
-      if (elevation < 0.23) {
+      if (elevation < 0.34) {
         tileId = TILE_WATER;
-      } else if (elevation < 0.31) {
+      } else if (elevation < 0.43) {
         tileId = TILE_SAND;
-      } else if (pathNoise > 0.47 && pathNoise < 0.53) {
+      } else if (pathNoise > 0.485 && pathNoise < 0.515 && elevation >= 0.43) {
         tileId = TILE_DIRT;
       } else {
         tileId = TILE_GRASS;

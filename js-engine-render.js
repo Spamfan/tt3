@@ -1,4 +1,4 @@
-// Tank Tycoon (prototype 3) - js-engine-render.js (v0.0.1)
+// Tank Tycoon (prototype 3) - js-engine-render.js (v0.0.2)
 // Canvas Rendering Subsystem (Offscreen Tile Cache, Interpolated Camera, Combat FX)
 
 import {
@@ -13,18 +13,30 @@ import {
   TILE_BASE_RESPAWN,
   getChunk,
   canPlaceBaseBlock
-} from "./js-engine-world.js?v=0.0.1";
+} from "./js-engine-world.js?v=0.0.2";
 
-export const MODULE_VERSION = "v0.0.1";
+export const MODULE_VERSION = "v0.0.2";
 
 // Render Constants & Tokens (md-spec-render.md §2)
+export const CAMERA_ZOOM = 0.8;
 export const VIEWPORT_BUFFER_CHUNKS = 1;
-export const TRAJECTORY_LENGTH = 192;
+export const TRAJECTORY_LENGTH = 230;
 export const CAMERA_LERP = 0.08;
 export const CAMERA_LOOKAHEAD = 45;
 
 export const PALETTE = Object.freeze({
-  background: "#0b0e14",
+  background: "#12171e",
+  grass: "#475422",
+  grassDeep: "#3e4a1c",
+  dirt: "#635c49",
+  sand: "#cbb185",
+  sandWarm: "#d8be96",
+  water: "#182633",
+  waterDeep: "#111c27",
+  playerHull: "#465866",
+  playerTurret: "#5a6f7e",
+  enemyHull: "#8a7b70",
+  enemyTurret: "#9e8e82",
   hudCyan: "#00f0ff",
   vitalityGreen: "#2ec4b6",
   hazardAmber: "#ffb703",
@@ -54,107 +66,89 @@ function buildOffscreenTileCache() {
     return off;
   };
 
-  // 0: Grass
+  // 0: Grass (Muted military olive moss with subtle organic micro-stippling)
   tilePatternCanvases.set(
     TILE_GRASS,
     createTileCanvas((c, s) => {
-      c.fillStyle = "#2d8a00";
+      c.fillStyle = PALETTE.grass;
       c.fillRect(0, 0, s, s);
-      c.fillStyle = "#38b000";
-      c.fillRect(2, 2, s - 4, s - 4);
-      c.fillStyle = "#70e000";
-      c.fillRect(8, 10, 4, 4);
-      c.fillRect(28, 30, 4, 4);
-      c.strokeStyle = "rgba(11, 14, 20, 0.14)";
-      c.strokeRect(0.5, 0.5, s - 1, s - 1);
+      c.fillStyle = PALETTE.grassDeep;
+      c.fillRect(6, 8, 5, 4);
+      c.fillRect(22, 18, 4, 5);
+      c.fillRect(36, 10, 5, 3);
+      c.fillRect(14, 34, 4, 4);
+      c.fillRect(32, 38, 5, 4);
     })
   );
 
-  // 1: Dirt
+  // 1: Dirt (Desaturated basalt loam)
   tilePatternCanvases.set(
     TILE_DIRT,
     createTileCanvas((c, s) => {
-      c.fillStyle = "#9c7a44";
+      c.fillStyle = PALETTE.dirt;
       c.fillRect(0, 0, s, s);
-      c.fillStyle = "#b79257";
-      c.fillRect(2, 2, s - 4, s - 4);
-      c.fillStyle = "#846332";
-      c.fillRect(12, 14, 5, 5);
-      c.fillRect(30, 26, 6, 4);
-      c.strokeStyle = "rgba(11, 14, 20, 0.16)";
-      c.strokeRect(0.5, 0.5, s - 1, s - 1);
+      c.fillStyle = "#534c3c";
+      c.fillRect(10, 14, 6, 4);
+      c.fillRect(28, 24, 5, 5);
+      c.fillRect(18, 38, 4, 3);
     })
   );
 
-  // 2: Sand / Gravel
+  // 2: Sand / Beach (Contoured natural shore tan)
   tilePatternCanvases.set(
     TILE_SAND,
     createTileCanvas((c, s) => {
-      c.fillStyle = "#d4c18a";
+      c.fillStyle = PALETTE.sand;
       c.fillRect(0, 0, s, s);
-      c.fillStyle = "#e9d8a6";
-      c.fillRect(2, 2, s - 4, s - 4);
-      c.fillStyle = "#bca66b";
-      c.fillRect(10, 20, 3, 3);
-      c.fillRect(32, 12, 4, 3);
-      c.strokeStyle = "rgba(11, 14, 20, 0.14)";
-      c.strokeRect(0.5, 0.5, s - 1, s - 1);
+      c.fillStyle = PALETTE.sandWarm;
+      c.fillRect(8, 12, 7, 5);
+      c.fillRect(26, 30, 8, 4);
+      c.fillRect(34, 8, 5, 4);
     })
   );
 
-  // 3: Water
+  // 3: Water (Deep navy / dark pond slate)
   tilePatternCanvases.set(
     TILE_WATER,
     createTileCanvas((c, s) => {
-      c.fillStyle = "#005f92";
+      c.fillStyle = PALETTE.water;
       c.fillRect(0, 0, s, s);
-      c.fillStyle = "#0077b6";
-      c.fillRect(2, 2, s - 4, s - 4);
-      c.fillStyle = "rgba(0, 240, 255, 0.25)";
-      c.fillRect(8, 14, 14, 3);
-      c.fillRect(22, 32, 16, 3);
-      c.strokeStyle = "rgba(0, 240, 255, 0.18)";
-      c.strokeRect(0.5, 0.5, s - 1, s - 1);
+      c.fillStyle = PALETTE.waterDeep;
+      c.fillRect(10, 12, 14, 5);
+      c.fillRect(24, 28, 16, 5);
     })
   );
 
-  // 4: Base Concrete
+  // 4: Base Concrete (Matte military reinforced carbon slab)
   tilePatternCanvases.set(
     TILE_BASE_CONCRETE,
     createTileCanvas((c, s) => {
-      c.fillStyle = "#2d3748";
+      c.fillStyle = "#252b36";
       c.fillRect(0, 0, s, s);
-      c.fillStyle = "#4a5568";
-      c.fillRect(3, 3, s - 6, s - 6);
-      c.strokeStyle = "#00f0ff";
-      c.lineWidth = 1;
-      c.strokeRect(1.5, 1.5, s - 3, s - 3);
-      c.fillStyle = "#718096";
-      c.fillRect(6, 6, 4, 4);
-      c.fillRect(s - 10, 6, 4, 4);
-      c.fillRect(6, s - 10, 4, 4);
-      c.fillRect(s - 10, s - 10, 4, 4);
+      c.fillStyle = "#333b49";
+      c.fillRect(2, 2, s - 4, s - 4);
+      c.fillStyle = "#1e232c";
+      c.fillRect(4, 4, 3, 3);
+      c.fillRect(s - 7, 4, 3, 3);
+      c.fillRect(4, s - 7, 3, 3);
+      c.fillRect(s - 7, s - 7, 3, 3);
     })
   );
 
-  // 5: Base Respawn Pad (Concrete + White/Green Plus Pad)
+  // 5: Base Respawn Pad (Matte slab + vitality cross)
   tilePatternCanvases.set(
     TILE_BASE_RESPAWN,
     createTileCanvas((c, s) => {
-      c.fillStyle = "#1e293b";
+      c.fillStyle = "#202630";
       c.fillRect(0, 0, s, s);
-      c.fillStyle = "#334155";
-      c.fillRect(3, 3, s - 6, s - 6);
-      c.strokeStyle = "#2ec4b6";
-      c.lineWidth = 2;
-      c.strokeRect(2, 2, s - 4, s - 4);
-      // White/green medical/respawn plus emblem
+      c.fillStyle = "#2c3442";
+      c.fillRect(2, 2, s - 4, s - 4);
       c.fillStyle = "#2ec4b6";
-      c.fillRect(s / 2 - 4, 10, 8, s - 20);
-      c.fillRect(10, s / 2 - 4, s - 20, 8);
+      c.fillRect(s / 2 - 3, 9, 6, s - 18);
+      c.fillRect(9, s / 2 - 3, s - 18, 6);
       c.fillStyle = "#ffffff";
-      c.fillRect(s / 2 - 2, 13, 4, s - 26);
-      c.fillRect(13, s / 2 - 2, s - 26, 4);
+      c.fillRect(s / 2 - 1.5, 11, 3, s - 22);
+      c.fillRect(11, s / 2 - 1.5, s - 22, 3);
     })
   );
 }
@@ -198,10 +192,11 @@ export function renderWorld(camera, chunks, worldState) {
 
   const halfW = viewportWidth / 2;
   const halfH = viewportHeight / 2;
-  const minWorldX = camera.x - halfW;
-  const maxWorldX = camera.x + halfW;
-  const minWorldY = camera.y - halfH;
-  const maxWorldY = camera.y + halfH;
+  const invZoom = 1 / CAMERA_ZOOM;
+  const minWorldX = camera.x - halfW * invZoom;
+  const maxWorldX = camera.x + halfW * invZoom;
+  const minWorldY = camera.y - halfH * invZoom;
+  const maxWorldY = camera.y + halfH * invZoom;
 
   const startChunkX =
     Math.floor(minWorldX / CHUNK_PIXEL_SIZE) - VIEWPORT_BUFFER_CHUNKS;
@@ -212,6 +207,8 @@ export function renderWorld(camera, chunks, worldState) {
   const endChunkY =
     Math.floor(maxWorldY / CHUNK_PIXEL_SIZE) + VIEWPORT_BUFFER_CHUNKS;
 
+  const drawSize = Math.ceil(TILE_SIZE * CAMERA_ZOOM);
+
   for (let cy = startChunkY; cy <= endChunkY; cy++) {
     for (let cx = startChunkX; cx <= endChunkX; cx++) {
       const chunk = getChunk(cx, cy, worldState);
@@ -220,20 +217,20 @@ export function renderWorld(camera, chunks, worldState) {
 
       for (let ty = 0; ty < CHUNK_TILES; ty++) {
         const worldY = chunkOriginY + ty * TILE_SIZE;
-        const screenY = Math.floor(worldY - camera.y + halfH);
-        if (screenY + TILE_SIZE < 0 || screenY > viewportHeight) continue;
+        const screenY = Math.floor((worldY - camera.y) * CAMERA_ZOOM + halfH);
+        if (screenY + drawSize < 0 || screenY > viewportHeight) continue;
 
         for (let tx = 0; tx < CHUNK_TILES; tx++) {
           const worldX = chunkOriginX + tx * TILE_SIZE;
-          const screenX = Math.floor(worldX - camera.x + halfW);
-          if (screenX + TILE_SIZE < 0 || screenX > viewportWidth) continue;
+          const screenX = Math.floor((worldX - camera.x) * CAMERA_ZOOM + halfW);
+          if (screenX + drawSize < 0 || screenX > viewportWidth) continue;
 
           const tileId = chunk.tiles[ty * CHUNK_TILES + tx];
           const patternCanvas =
             tilePatternCanvases.get(tileId) ||
             tilePatternCanvases.get(TILE_GRASS);
           if (patternCanvas) {
-            ctx.drawImage(patternCanvas, screenX, screenY);
+            ctx.drawImage(patternCanvas, screenX, screenY, drawSize, drawSize);
           }
         }
       }
@@ -243,15 +240,16 @@ export function renderWorld(camera, chunks, worldState) {
   // Draw persistent Salvage Crates on the field
   const crates = worldState?.salvageCrates || [];
   for (const crate of crates) {
-    const sx = crate.x - camera.x + halfW;
-    const sy = crate.y - camera.y + halfH;
+    const sx = Math.floor((crate.x - camera.x) * CAMERA_ZOOM + halfW);
+    const sy = Math.floor((crate.y - camera.y) * CAMERA_ZOOM + halfH);
     if (sx < -48 || sx > viewportWidth + 48 || sy < -48 || sy > viewportHeight + 48) {
       continue;
     }
 
     ctx.save();
     ctx.translate(sx, sy);
-    ctx.fillStyle = "#161b24";
+    ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
+    ctx.fillStyle = "#1b222d";
     ctx.fillRect(-16, -16, 32, 32);
     ctx.strokeStyle = PALETTE.hazardAmber;
     ctx.lineWidth = 2;
@@ -282,95 +280,103 @@ function drawSingleTank(
   const interpY =
     (tank.prevY ?? tank.y) + (tank.y - (tank.prevY ?? tank.y)) * alpha;
 
-  const screenX = interpX - camera.x + halfW;
-  const screenY = interpY - camera.y + halfH;
+  const screenX = Math.floor((interpX - camera.x) * CAMERA_ZOOM + halfW);
+  const screenY = Math.floor((interpY - camera.y) * CAMERA_ZOOM + halfH);
 
   if (
-    screenX < -64 ||
-    screenX > viewportWidth + 64 ||
-    screenY < -64 ||
-    screenY > viewportHeight + 64
+    screenX < -80 ||
+    screenX > viewportWidth + 80 ||
+    screenY < -80 ||
+    screenY > viewportHeight + 80
   ) {
     return;
   }
 
   const hullColor = isPlayer
-    ? tank.chassisCustomization?.hullColor || "#1b4332"
-    : "#4a151b";
-  const trimColor = isPlayer
-    ? tank.chassisCustomization?.trimColor || PALETTE.hudCyan
-    : PALETTE.alertCrimson;
+    ? tank.chassisCustomization?.hullColor || PALETTE.playerHull
+    : PALETTE.enemyHull;
   const turretColor = isPlayer
-    ? tank.chassisCustomization?.turretColor || "#2d6a4f"
-    : "#7f1d1d";
+    ? tank.chassisCustomization?.turretColor || PALETTE.playerTurret
+    : PALETTE.enemyTurret;
+
+  // Soft elliptical drop-shadow beneath tank
+  ctx.save();
+  ctx.translate(screenX, screenY + 4 * CAMERA_ZOOM);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 22 * CAMERA_ZOOM, 15 * CAMERA_ZOOM, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
   // 1. Chassis & Treads
   ctx.save();
   ctx.translate(screenX, screenY);
+  ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
   ctx.rotate(tank.chassisAngle || 0);
 
-  // Left & Right Treads
-  ctx.fillStyle = "#0b0e14";
+  // Treads (Deep matte carbon)
+  ctx.fillStyle = "#14171c";
   ctx.fillRect(-22, -20, 44, 8);
   ctx.fillRect(-22, 12, 44, 8);
 
-  // Tread grousers
-  ctx.fillStyle = "#334155";
+  // Tread links
+  ctx.fillStyle = "#272c36";
   for (let gx = -18; gx <= 16; gx += 7) {
     ctx.fillRect(gx, -19, 3, 6);
     ctx.fillRect(gx, 13, 3, 6);
   }
 
-  // Main Armored Hull
+  // Armored Hull
   ctx.fillStyle = hullColor;
   ctx.fillRect(-19, -13, 38, 26);
-  ctx.strokeStyle = trimColor;
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#1b212b";
+  ctx.lineWidth = 1.5;
   ctx.strokeRect(-19, -13, 38, 26);
-
-  // Forward Hull Chevron
-  ctx.fillStyle = trimColor;
-  ctx.fillRect(11, -6, 4, 12);
   ctx.restore();
 
-  // 2. Decoupled Turret & Barrel with Recoil Offset
+  // 2. Decoupled Turret Dome & Barrel
   ctx.save();
   ctx.translate(screenX, screenY);
+  ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
   ctx.rotate(tank.turretAngle || 0);
 
   const recoilShift = -(tank.recoilOffset || 0);
 
-  // Cannon Barrel
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillRect(6 + recoilShift, -4, 24, 8);
-  ctx.strokeStyle = "#0b0e14";
+  // Barrel
+  ctx.fillStyle = "#333d49";
+  ctx.fillRect(6 + recoilShift, -4, 25, 8);
+  ctx.strokeStyle = "#1b212b";
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(6 + recoilShift, -4, 24, 8);
-
-  // Muzzle Brake
-  ctx.fillStyle = trimColor;
-  ctx.fillRect(26 + recoilShift, -5, 5, 10);
+  ctx.strokeRect(6 + recoilShift, -4, 25, 8);
+  ctx.fillStyle = "#11161d";
+  ctx.fillRect(29 + recoilShift, -3, 3, 6);
 
   // Turret Dome
   ctx.fillStyle = turretColor;
   ctx.beginPath();
-  ctx.arc(recoilShift * 0.35, 0, 12, 0, Math.PI * 2);
+  ctx.arc(recoilShift * 0.3, 0, 12, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = trimColor;
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#202833";
+  ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  // Subtle dome highlight
+  ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+  ctx.beginPath();
+  ctx.arc(recoilShift * 0.3 - 2, -2, 7, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 
-  // Enemy overhead HP bar
+  // Enemy overhead HP bar (Minimalist red bar matching screenshot)
   if (!isPlayer && tank.hp < tank.maxHp) {
-    const barW = 38;
-    const barH = 5;
+    const barW = 34 * CAMERA_ZOOM;
+    const barH = 4 * CAMERA_ZOOM;
     const pct = Math.max(0, Math.min(1, tank.hp / tank.maxHp));
     ctx.save();
-    ctx.fillStyle = "rgba(11, 14, 20, 0.85)";
-    ctx.fillRect(screenX - barW / 2, screenY - 32, barW, barH);
+    ctx.fillStyle = "rgba(18, 23, 30, 0.85)";
+    ctx.fillRect(screenX - barW / 2, screenY - 28 * CAMERA_ZOOM, barW, barH);
     ctx.fillStyle = PALETTE.alertCrimson;
-    ctx.fillRect(screenX - barW / 2 + 1, screenY - 31, (barW - 2) * pct, barH - 2);
+    ctx.fillRect(screenX - barW / 2, screenY - 28 * CAMERA_ZOOM, barW * pct, barH);
     ctx.restore();
   }
 }
@@ -398,62 +404,66 @@ export function renderCombatFX(
   const halfW = viewportWidth / 2;
   const halfH = viewportHeight / 2;
 
-  // 1. Trajectory Guide from Player Muzzle (TRAJECTORY_LENGTH = 192px)
+  // 1. Thin white dashed trajectory guide matching screenshot reference
   if (player && !player.isDead) {
     const interpX =
       (player.prevX ?? player.x) + (player.x - (player.prevX ?? player.x)) * alpha;
     const interpY =
       (player.prevY ?? player.y) + (player.y - (player.prevY ?? player.y)) * alpha;
-    const sx = interpX - camera.x + halfW;
-    const sy = interpY - camera.y + halfH;
+    const sx = Math.floor((interpX - camera.x) * CAMERA_ZOOM + halfW);
+    const sy = Math.floor((interpY - camera.y) * CAMERA_ZOOM + halfH);
     const angle = player.turretAngle || 0;
 
-    const muzzleX = sx + Math.cos(angle) * 30;
-    const muzzleY = sy + Math.sin(angle) * 30;
-    const endX = muzzleX + Math.cos(angle) * TRAJECTORY_LENGTH;
-    const endY = muzzleY + Math.sin(angle) * TRAJECTORY_LENGTH;
+    const muzzleDist = 32 * CAMERA_ZOOM;
+    const trajDist = TRAJECTORY_LENGTH * CAMERA_ZOOM;
+    const muzzleX = sx + Math.cos(angle) * muzzleDist;
+    const muzzleY = sy + Math.sin(angle) * muzzleDist;
+    const endX = muzzleX + Math.cos(angle) * trajDist;
+    const endY = muzzleY + Math.sin(angle) * trajDist;
 
     ctx.save();
-    const grad = ctx.createLinearGradient(muzzleX, muzzleY, endX, endY);
-    grad.addColorStop(0, "rgba(0, 240, 255, 0.55)");
-    grad.addColorStop(1, "rgba(0, 240, 255, 0.08)");
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 6]);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(muzzleX, muzzleY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
-    // Terminal lead dot
     ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(0, 240, 255, 0.65)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
     ctx.beginPath();
-    ctx.arc(endX, endY, 3.5, 0, Math.PI * 2);
+    ctx.arc(endX, endY, 2.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 
-  // 2. Dropped Scrap, Cash & Health Pickups
+  // 2. Dropped Scrap & Cash Pickups (Screenshot glowing cash badge)
   for (const item of pickups) {
-    const sx = item.x - camera.x + halfW;
-    const sy = item.y - camera.y + halfH;
+    const sx = Math.floor((item.x - camera.x) * CAMERA_ZOOM + halfW);
+    const sy = Math.floor((item.y - camera.y) * CAMERA_ZOOM + halfH);
     ctx.save();
     ctx.translate(sx, sy);
+    ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
 
-    if (item.type === "hp_orb") {
+    if (item.type === "cash") {
+      ctx.fillStyle = "rgba(46, 196, 182, 0.22)";
+      ctx.fillRect(-18, -12, 36, 24);
+      ctx.fillStyle = "#22c55e";
+      ctx.fillRect(-14, -8, 28, 16);
+      ctx.fillStyle = "#0f391b";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`$${item.quantity || 1}`, 0, 0);
+    } else if (item.type === "hp_orb") {
       ctx.fillStyle = PALETTE.vitalityGreen;
       ctx.beginPath();
-      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 1.5;
       ctx.stroke();
-    } else if (item.type === "cash") {
-      ctx.fillStyle = "#16a34a";
-      ctx.fillRect(-9, -6, 18, 12);
-      ctx.strokeStyle = PALETTE.vitalityGreen;
-      ctx.strokeRect(-9, -6, 18, 12);
     } else {
       const colorMap = {
         steel: "#00f0ff",
@@ -461,45 +471,45 @@ export function renderCombatFX(
         aluminum: "#cbd5e1"
       };
       ctx.fillStyle = colorMap[item.type] || "#00f0ff";
-      ctx.fillRect(-7, -7, 14, 14);
-      ctx.strokeStyle = "#0b0e14";
+      ctx.fillRect(-6, -6, 12, 12);
+      ctx.strokeStyle = "#12171e";
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(-7, -7, 14, 14);
+      ctx.strokeRect(-6, -6, 12, 12);
     }
     ctx.restore();
   }
 
-  // 3. Active Projectiles
+  // 3. Projectiles
   for (const proj of projectiles) {
     const px =
       (proj.prevX ?? proj.x) + (proj.x - (proj.prevX ?? proj.x)) * alpha;
     const py =
       (proj.prevY ?? proj.y) + (proj.y - (proj.prevY ?? proj.y)) * alpha;
-    const sx = px - camera.x + halfW;
-    const sy = py - camera.y + halfH;
+    const sx = Math.floor((px - camera.x) * CAMERA_ZOOM + halfW);
+    const sy = Math.floor((py - camera.y) * CAMERA_ZOOM + halfH);
 
     ctx.save();
     ctx.translate(sx, sy);
+    ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
     ctx.rotate(proj.angle || 0);
-    ctx.fillStyle = proj.fromEnemy ? PALETTE.alertCrimson : PALETTE.hudCyan;
-    ctx.fillRect(-6, -2.5, 12, 5);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(2, -1.5, 4, 3);
+    ctx.fillStyle = proj.fromEnemy ? PALETTE.alertCrimson : "#e2e8f0";
+    ctx.fillRect(-6, -2, 12, 4);
     ctx.restore();
   }
 
-  // 4. Muzzle Sparks & Spinning Brass Shell Casings
+  // 4. Muzzle Sparks & Shell Casings
   for (const pt of particles) {
-    const sx = pt.x - camera.x + halfW;
-    const sy = pt.y - camera.y + halfH;
+    const sx = Math.floor((pt.x - camera.x) * CAMERA_ZOOM + halfW);
+    const sy = Math.floor((pt.y - camera.y) * CAMERA_ZOOM + halfH);
     const ratio = Math.max(0, pt.life / (pt.maxLife || 0.2));
 
     ctx.save();
     ctx.globalAlpha = ratio;
     ctx.translate(sx, sy);
+    ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
     if (pt.kind === "casing") {
       ctx.rotate(pt.rotation || 0);
-      ctx.fillStyle = "#fbbf24";
+      ctx.fillStyle = "#d4af37";
       ctx.fillRect(-3.5, -1.5, 7, 3);
     } else {
       ctx.fillStyle = pt.color || PALETTE.hazardAmber;
@@ -508,17 +518,17 @@ export function renderCombatFX(
     ctx.restore();
   }
 
-  // 5. Rising Floating Text (-10 HP, +1 STEEL, etc.)
+  // 5. Rising Floating Text
   for (const ft of floatingTexts) {
-    const sx = ft.x - camera.x + halfW;
-    const sy = ft.y - camera.y + halfH;
+    const sx = Math.floor((ft.x - camera.x) * CAMERA_ZOOM + halfW);
+    const sy = Math.floor((ft.y - camera.y) * CAMERA_ZOOM + halfH);
     const ratio = Math.max(0, ft.life / (ft.maxLife || 1));
 
     ctx.save();
     ctx.globalAlpha = ratio;
-    ctx.font = "bold 12px monospace";
+    ctx.font = "bold 11px monospace";
     ctx.textAlign = "center";
-    ctx.fillStyle = "#0b0e14";
+    ctx.fillStyle = "#000000";
     ctx.fillText(ft.text, sx + 1, sy + 1);
     ctx.fillStyle = ft.color || PALETTE.hudCyan;
     ctx.fillText(ft.text, sx, sy);
@@ -538,9 +548,9 @@ export function renderPlacementGhost(camera, placementState, worldState) {
 
   const worldX = gx * TILE_SIZE;
   const worldY = gy * TILE_SIZE;
-  const span = TILE_SIZE * 2; // 2x2 tiles = 96x96px
-  const sx = worldX - camera.x + halfW;
-  const sy = worldY - camera.y + halfH;
+  const span = Math.ceil(TILE_SIZE * 2 * CAMERA_ZOOM);
+  const sx = Math.floor((worldX - camera.x) * CAMERA_ZOOM + halfW);
+  const sy = Math.floor((worldY - camera.y) * CAMERA_ZOOM + halfH);
 
   ctx.save();
   ctx.fillStyle = valid ? PALETTE.ghostValid : PALETTE.ghostInvalid;
@@ -574,22 +584,24 @@ export function renderBaseInteractCue(camera, player, baseBlocks = []) {
       Math.abs(player.y - block.worldY) <= TILE_SIZE;
     if (!inBlock) continue;
 
-    const sx = block.worldX - camera.x + halfW;
-    const sy = block.worldY - 32 - camera.y + halfH;
+    const sx = Math.floor((block.worldX - camera.x) * CAMERA_ZOOM + halfW);
+    const sy = Math.floor((block.worldY - 32 - camera.y) * CAMERA_ZOOM + halfH);
 
     ctx.save();
     ctx.globalAlpha = pulse;
+    ctx.translate(sx, sy);
+    ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
     ctx.fillStyle = "#161b24";
     ctx.beginPath();
-    ctx.arc(sx, sy, 13, 0, Math.PI * 2);
+    ctx.arc(0, 0, 13, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = PALETTE.vitalityGreen;
     ctx.lineWidth = 2;
     ctx.stroke();
 
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(sx - 2, sy - 7, 4, 14);
-    ctx.fillRect(sx - 7, sy - 2, 14, 4);
+    ctx.fillRect(-2, -7, 4, 14);
+    ctx.fillRect(-7, -2, 14, 4);
     ctx.restore();
   }
 }

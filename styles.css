@@ -1,5 +1,5 @@
-/* Tank Tycoon (prototype 3) - styles.css (v0.0.2) */
-/* Halo Reach Sci-Fi Dark Carbon Slate Aesthetic & Tactical HUD */
+/* Tank Tycoon (prototype 3) - styles.css (v0.0.3) */
+/* Muted Military Tactical HUD & Realistic Sci-Fi Slate Aesthetic */
 
 :root {
   --bg-carbon: #0b0e14;
@@ -85,22 +85,21 @@ body {
 
 .hud-version {
   pointer-events: auto;
-  background: rgba(22, 27, 36, 0.88);
-  border: 1px solid rgba(0, 240, 255, 0.45);
-  color: var(--accent-cyan);
+  background: transparent;
+  border: none;
+  color: #64748b;
   font-family: monospace;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 7px 12px;
-  clip-path: var(--chamfer-sm);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 4px 6px;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
 }
 
 .hud-version:active {
-  transform: scale(0.96);
-  background: var(--bg-slate-hi);
+  opacity: 1;
 }
 
 .hud-center-cluster {
@@ -108,18 +107,18 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(11, 14, 20, 0.86);
-  border: 1px solid rgba(0, 240, 255, 0.35);
-  padding: 6px 12px;
+  background: rgba(18, 23, 30, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 5px 10px;
   clip-path: var(--chamfer-sm);
 }
 
 .hud-health-bar {
   position: relative;
   width: 118px;
-  height: 20px;
-  background: #0b0e14;
-  border: 1px solid var(--vitality-green);
+  height: 18px;
+  background: #0d1117;
+  border: 1px solid rgba(46, 196, 182, 0.4);
   overflow: hidden;
   clip-path: var(--chamfer-sm);
 }
@@ -127,30 +126,8 @@ body {
 .hud-health-fill {
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, #15803d, var(--vitality-green));
+  background: linear-gradient(90deg, #2d6a4f, #40916c);
   transition: width 0.15s ease-out;
-}
-
-.hud-health-text {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: monospace;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 1px 2px #000;
-}
-
-.hud-cash {
-  font-family: monospace;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--vitality-green);
-  min-width: 62px;
-  text-align: right;
 }
 
 .hud-btn-inventory,
@@ -161,10 +138,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: var(--bg-slate);
-  border: 1px solid var(--accent-cyan);
-  color: var(--accent-cyan);
-  padding: 7px 11px;
+  background: rgba(22, 27, 36, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #cbd5e1;
+  padding: 6px 10px;
   clip-path: var(--chamfer-sm);
   cursor: pointer;
 }
@@ -310,7 +287,7 @@ body {
   max-height: 86vh;
   overflow-y: auto;
   background: var(--bg-slate);
-  border: 2px solid var(--accent-cyan);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   clip-path: var(--chamfer-lg);
   padding: 20px;
   display: flex;
