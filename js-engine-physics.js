@@ -1,9 +1,10 @@
-// Tank Tycoon (prototype 3) - js-engine-physics.js (v0.0.1)
+// Tank Tycoon (prototype 3) - js-engine-physics.js (v0.0.3)
 // Physics & Kinematics Subsystem (Fixed 60Hz Step, Swept AABB, Projectiles, Magnetism)
 
 import {
   getTileAtWorldPos,
-  calculateEnemyLoot
+  calculateEnemyLoot,
+  getChunk
 } from "./js-engine-world.js?v=0.0.1";
 import {
   CANNON_DAMAGE,
@@ -16,7 +17,7 @@ import {
   addInventory
 } from "./js-state-player.js?v=0.0.1";
 
-export const MODULE_VERSION = "v0.0.1";
+export const MODULE_VERSION = "v0.0.2";
 
 // Clock & Integration Constants (md-spec-physics.md §2)
 export const FIXED_STEP = 1 / 60;
@@ -330,7 +331,17 @@ export function updateProjectiles(projectiles, entities, world, dt, gameState = 
                 });
               });
             }
+            const deadChunkKey = foe.chunkKey;
             enemies.splice(j, 1);
+            if (deadChunkKey && !enemies.some((e) => e.chunkKey === deadChunkKey)) {
+              const [cx, cy] = deadChunkKey.split(",").map(Number);
+              const activeWorld = world || gameState?.world;
+              const chunk = getChunk(cx, cy, activeWorld);
+              if (chunk) {
+                chunk.clearedEnemies = true;
+                chunk.modified = true;
+              }
+            }
           }
           break;
         }
@@ -355,8 +366,8 @@ export function updateScrapMagnetism(player, pickups, dt, gameState = null) {
     if (dist < MAGNET_RADIUS && dist > 0.001) {
       const normX = dx / dist;
       const normY = dy / dist;
-      item.vx = (item.vx || 0) + normX * MAGNET_ACCEL * dt;
-      item.vy = (item.vy || 0) + normY * MAGNET_ACCEL * dt;
+      item.vx = ((item.vx || 0) + normX * MAGNET_ACCEL * dt) * 0.94;
+      item.vy = ((item.vy || 0) + normY * MAGNET_ACCEL * dt) * 0.94;
     } else {
       item.vx = (item.vx || 0) * 0.9;
       item.vy = (item.vy || 0) * 0.9;

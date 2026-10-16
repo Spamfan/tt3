@@ -1,10 +1,10 @@
-// Tank Tycoon (prototype 3) - js-main.js (v0.0.1)
+// Tank Tycoon (prototype 3) - js-main.js (v0.0.3)
 // Master Coordinator, Fixed-Step Accumulator Loop & Submodule Router
 
 import {
   MODULE_VERSION as MANIFEST_VERSION,
   getManifestData
-} from "./js-manifest.js?v=0.0.1";
+} from "./js-manifest.js?v=0.0.3";
 import {
   initStorage,
   loadGameState,
@@ -31,7 +31,7 @@ import {
 } from "./js-engine-world.js?v=0.0.1";
 import {
   updatePhysics
-} from "./js-engine-physics.js?v=0.0.1";
+} from "./js-engine-physics.js?v=0.0.3";
 import {
   initRenderer,
   renderFrame
@@ -42,9 +42,9 @@ import {
   renderManifest,
   updateHUD,
   showToastBanner
-} from "./js-ui-controller.js?v=0.0.1";
+} from "./js-ui-controller.js?v=0.0.2";
 
-export const MODULE_VERSION = "v0.0.1";
+export const MODULE_VERSION = "v0.0.3";
 
 function createEventBus() {
   const listeners = new Map();
@@ -169,14 +169,13 @@ async function hydrateOrCreateWorld(forceFreshSeed = null) {
   }
 
   // Hydrate saved Base Blocks
-  gameState.baseBlocks = [];
-  gameState.world.baseBlocks = gameState.baseBlocks;
   if (Array.isArray(saved?.baseBlocks)) {
     saved.baseBlocks.forEach((b) => {
       const tileType = b.hasRespawnPad ? TILE_BASE_RESPAWN : TILE_BASE_CONCRETE;
       placeBaseBlock(b.gridOriginX, b.gridOriginY, tileType, gameState.world);
     });
   }
+  gameState.baseBlocks = gameState.world.baseBlocks;
 
   // Hydrate saved Salvage Crates
   gameState.salvageCrates = Array.isArray(saved?.salvageCrates)
@@ -195,9 +194,11 @@ async function hydrateOrCreateWorld(forceFreshSeed = null) {
   await saveGameState(gameState, true);
 }
 
-function tryCommitBasePlacement() {
+function tryCommitBasePlacement(fromPlayerHeading = false) {
   if (!gameState.placementState.active) return false;
-  updatePlacementGridFromPlayer();
+  if (fromPlayerHeading) {
+    updatePlacementGridFromPlayer();
+  }
 
   const gx = gameState.placementState.gridOriginX;
   const gy = gameState.placementState.gridOriginY;
@@ -216,6 +217,7 @@ function tryCommitBasePlacement() {
     return true;
   }
 
+  gameState.baseBlocks = gameState.world.baseBlocks;
   gameState.placementState.active = false;
   saveGameState(gameState, true);
   updateHUD(gameState);
@@ -225,7 +227,7 @@ function tryCommitBasePlacement() {
 
 function handleContextualInteract() {
   if (gameState.placementState.active) {
-    tryCommitBasePlacement();
+    tryCommitBasePlacement(true);
     return;
   }
 
@@ -244,6 +246,7 @@ function handleContextualInteract() {
   }
 
   upgradeBaseBlockToRespawn(activeBlock, gameState.world);
+  gameState.baseBlocks = gameState.world.baseBlocks;
   saveGameState(gameState, true);
   updateHUD(gameState);
   showToastBanner("RESPAWN PAD UPGRADE COMPLETE");
@@ -303,7 +306,7 @@ async function bootApp() {
     },
     onCanvasPrimaryAction: () => {
       if (gameState.placementState.active) {
-        return tryCommitBasePlacement();
+        return tryCommitBasePlacement(false);
       }
       return false;
     }

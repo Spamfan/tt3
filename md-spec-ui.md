@@ -1,6 +1,6 @@
 # UI, HUD & Input Controller Specification
 ### Sub-Spoke Specification: js-ui-controller.js / styles.css
-### Version V2
+### Version V3
 
 ---
 
@@ -51,6 +51,7 @@ Governs the DOM-based tactical HUD overlay, dual touch-joystick mobile controls,
 
 #### `openModal(modalElement)` / `closeModal(modalElement)`
 * Manages 4-Way modal dismissal: Close button, backdrop tap, `Escape` key, and `popstate` back navigation (`history.pushState()`).
+* Companion `closeAllModals()` unwinds `window.history.go(-count)` to clear active modal states without leaving orphaned browser history entries.
 * Pauses fixed-step physics engine while Pause or Manifest modal is open.
 
 #### `renderManifest(manifestData)`

@@ -1,6 +1,6 @@
 # Tank Tycoon (prototype 3)
 ### tt3
-### Living Design Document (LDD) V5
+### Living Design Document (LDD) V7
 
 ---
 
@@ -279,24 +279,24 @@ Replace with
 ### 6. BASELINE FLOOR & FILE TREE
 
 #### Version Floor
-* **App (Tank Tycoon [prototype 3]):** `v0.0.1`  
-* **`index.html`:** `v0.0.1`  
-* **`js-engine-physics.js`:** `v0.0.1`  
+* **App (Tank Tycoon [prototype 3]):** `v0.0.3`  
+* **`index.html`:** `v0.0.3`  
+* **`js-engine-physics.js`:** `v0.0.3`  
 * **`js-engine-render.js`:** `v0.0.1`  
 * **`js-engine-world.js`:** `v0.0.1`  
-* **`js-main.js`:** `v0.0.1`  
-* **`js-manifest.js`:** `v0.0.1`  
+* **`js-main.js`:** `v0.0.3`  
+* **`js-manifest.js`:** `v0.0.3`  
 * **`js-state-player.js`:** `v0.0.1`  
 * **`js-state-storage.js`:** `v0.0.1`  
-* **`js-ui-controller.js`:** `v0.0.1`  
-* **`md-spec-physics.md`:** `V1`  
-* **`md-spec-project.md`:** `V5`  
+* **`js-ui-controller.js`:** `v0.0.2`  
+* **`md-spec-physics.md`:** `V2`  
+* **`md-spec-project.md`:** `V7`  
 * **`md-spec-render.md`:** `V1`  
 * **`md-spec-storage.md`:** `V2`  
 * **`md-spec-tank.md`:** `V1`  
-* **`md-spec-ui.md`:** `V2`  
+* **`md-spec-ui.md`:** `V3`  
 * **`md-spec-world.md`:** `V2`  
-* **`styles.css`:** `v0.0.1`  
+* **`styles.css`:** `v0.0.2`  
 
 #### File Tree
 * `index.html`

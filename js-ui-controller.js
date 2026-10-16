@@ -1,4 +1,4 @@
-// Tank Tycoon (prototype 3) - js-ui-controller.js (v0.0.1)
+// Tank Tycoon (prototype 3) - js-ui-controller.js (v0.0.2)
 // UI, HUD, Split-Screen Touch Input, 4-Way Modal Dismissal & Manifest Table
 
 import { TILE_SIZE } from "./js-engine-world.js?v=0.0.1";
@@ -9,7 +9,7 @@ import {
   EVENT_INVENTORY_UPDATED
 } from "./js-state-player.js?v=0.0.1";
 
-export const MODULE_VERSION = "v0.0.1";
+export const MODULE_VERSION = "v0.0.2";
 
 let activeModalStack = [];
 let onModalPauseStateChange = null;
@@ -83,10 +83,22 @@ export function closeModal(modalElement, fromPopState = false) {
 }
 
 export function closeAllModals() {
+  const count = activeModalStack.length;
   while (activeModalStack.length > 0) {
-    const top = activeModalStack[activeModalStack.length - 1];
-    closeModal(top, true);
+    const top = activeModalStack.pop();
+    if (top) {
+      top.classList.remove("is-open");
+      top.setAttribute("aria-hidden", "true");
+    }
   }
+  if (count > 0) {
+    try {
+      if (window.history.state && window.history.state.tt3ModalId) {
+        window.history.go(-count);
+      }
+    } catch (_) {}
+  }
+  syncPauseState();
 }
 
 export function renderManifest(manifestData = []) {
@@ -211,8 +223,6 @@ export function initUI(eventBus, actions = {}) {
     btnGameOverReset: document.getElementById("btn-gameover-reset"),
     seedReadout: document.getElementById("hud-seed-readout"),
     toastBanner: document.getElementById("hud-toast-banner"),
-    joystickLeftZone: document.getElementById("touch-zone-left"),
-    joystickRightZone: document.getElementById("touch-zone-right"),
     joystickRing: document.getElementById("joystick-ring"),
     joystickNub: document.getElementById("joystick-nub")
   };

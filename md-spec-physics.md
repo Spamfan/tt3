@@ -1,6 +1,6 @@
 # Physics & Kinematics Subsystem Specification
 ### Sub-Spoke Specification: js-engine-physics.js
-### Version V1
+### Version V2
 
 ---
 
@@ -47,8 +47,9 @@ The physics engine manages deterministic collision detection, decoupled tank kin
 * Steps projectile positions along their trajectory vectors.
 * Performs raycast/circle intersection against tanks and obstacles.
 * Inflicts 10 damage per impact; despawns projectile on hit or max range (960px).
+* When an enemy tank's HP drops to 0, checks if any living foes remain in that enemy's chunk; if none remain, marks the chunk's `clearedEnemies = true` and `modified = true` so hostile tanks do not respawn.
 
 #### `updateScrapMagnetism(player, pickups, dt)`
 * Computes Euclidean distance from `player` center to each active pickup.
-* When distance `< MAGNET_RADIUS`, accelerates pickup toward player center using quadratic pull:
-  `pickup.velocity += normalize(player.pos - pickup.pos) * MAGNET_ACCEL * dt`.
+* When distance `< MAGNET_RADIUS`, accelerates pickup toward player center using quadratic pull with per-tick velocity damping (`* 0.94`) to eliminate orbital slingshot rotation:
+  `pickup.velocity = (pickup.velocity + normalize(player.pos - pickup.pos) * MAGNET_ACCEL * dt) * 0.94`.
