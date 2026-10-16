@@ -1,11 +1,11 @@
 # Canvas Rendering Subsystem Specification
 ### Sub-Spoke Specification: js-engine-render.js
-### Version V2
+### Version V3
 
 ---
 
 ### 1. SYSTEM OVERVIEW
-The rendering engine provides hardware-accelerated 2D canvas drawing, dynamic camera tracking with look-ahead damping, viewport chunk culling, offscreen tile pattern caching, and visual juice (trajectories, recoil, sparks, ejected casings, and in-world canvas overlays).
+The rendering engine provides hardware-accelerated 2D canvas drawing, continuous multi-pass contour terrain rendering (photorealistic curved sand shores and organic lake basins), smooth cinematic camera tracking (0.05 LERP, 10px lookahead), 10% recoil dampening, and grid rendering reserved exclusively for player base slabs.
 
 ---
 
@@ -13,8 +13,8 @@ The rendering engine provides hardware-accelerated 2D canvas drawing, dynamic ca
 * `CAMERA_ZOOM = 0.8` (renders 1.25x world area, expanding visible battlefield by 25%).
 * `VIEWPORT_BUFFER_CHUNKS = 1` (margin around frustum for seamless scrolling).
 * `TRAJECTORY_LENGTH = 230` px (faint white dashed line extending from muzzle).
-* `CAMERA_LERP = 0.08` (smooth position follow).
-* `CAMERA_LOOKAHEAD = 45` px (directional lead along tank velocity vector).
+* `CAMERA_LERP = 0.05` (smooth cinematic position follow).
+* `CAMERA_LOOKAHEAD = 10` px (gentle directional lead without sudden snapping).
 * Palette Tokens:
   * Background / Canvas: `#12171e`
   * Grass (Muted Military Moss): `#475422`
@@ -40,9 +40,12 @@ The rendering engine provides hardware-accelerated 2D canvas drawing, dynamic ca
 * Master draw routine called by `requestAnimationFrame`.
 * Interpolates current and previous physics positions using `alpha` to ensure smooth 144 FPS rendering.
 
-#### `renderWorld(camera, chunks)`
-* Calculates active screen bounding box transformed into world coordinates with `1 / CAMERA_ZOOM` culling margin.
-* Draws seamless terrain tiles using pre-rendered offscreen canvas pattern tiles without square tile borders.
+#### `renderWorld(camera, chunks, worldState)`
+* Renders continuous non-grid terrain using multi-pass organic contour curves matching realistic reference styling:
+  * Pass 1: Photorealistic olive grass background.
+  * Pass 2: Natural curved sand contours sampled at continuous elevation thresholds (`elev < 0.43`).
+  * Pass 3: Deep navy/slate water lakes nested within sand margins (`elev < 0.34`).
+  * Pass 4: Player-placed reinforced concrete and respawn pads snapped to 2x2 grid.
 
 #### `renderTanks(camera, player, enemies)`
 * Renders soft elliptical under-chassis drop shadow for realistic visual depth.

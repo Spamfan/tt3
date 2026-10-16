@@ -1,10 +1,10 @@
-// Tank Tycoon (prototype 3) - js-main.js (v0.0.4)
+// Tank Tycoon (prototype 3) - js-main.js (v0.0.5)
 // Master Coordinator, Fixed-Step Accumulator Loop & Submodule Router
 
 import {
   MODULE_VERSION as MANIFEST_VERSION,
   getManifestData
-} from "./js-manifest.js?v=0.0.4";
+} from "./js-manifest.js?v=0.0.5";
 import {
   initStorage,
   loadGameState,
@@ -28,7 +28,7 @@ import {
   placeBaseBlock,
   upgradeBaseBlockToRespawn,
   getBaseBlockAtWorldPos
-} from "./js-engine-world.js?v=0.0.2";
+} from "./js-engine-world.js?v=0.0.3";
 import {
   updatePhysics
 } from "./js-engine-physics.js?v=0.0.3";
@@ -36,16 +36,16 @@ import {
   initRenderer,
   renderFrame,
   CAMERA_ZOOM
-} from "./js-engine-render.js?v=0.0.2";
+} from "./js-engine-render.js?v=0.0.3";
 import {
   initUI,
   initInputListeners,
   renderManifest,
   updateHUD,
   showToastBanner
-} from "./js-ui-controller.js?v=0.0.2";
+} from "./js-ui-controller.js?v=0.0.3";
 
-export const MODULE_VERSION = "v0.0.4";
+export const MODULE_VERSION = "v0.0.5";
 
 function createEventBus() {
   const listeners = new Map();
@@ -161,9 +161,6 @@ async function hydrateOrCreateWorld(forceFreshSeed = null) {
   if (Array.isArray(saved?.chunks)) {
     saved.chunks.forEach((savedChunk) => {
       const chunk = getChunk(savedChunk.chunkX, savedChunk.chunkY, gameState.world);
-      if (Array.isArray(savedChunk.tiles) && savedChunk.tiles.length === chunk.tiles.length) {
-        chunk.tiles.set(savedChunk.tiles);
-      }
       chunk.modified = Boolean(savedChunk.modified);
       chunk.clearedEnemies = Boolean(savedChunk.clearedEnemies);
     });

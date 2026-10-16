@@ -1,4 +1,4 @@
-/* Tank Tycoon (prototype 3) - styles.css (v0.0.3) */
+/* Tank Tycoon (prototype 3) - styles.css (v0.0.4) */
 /* Muted Military Tactical HUD & Realistic Sci-Fi Slate Aesthetic */
 
 :root {
@@ -69,33 +69,44 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-top: max(10px, env(safe-area-inset-top));
+  padding-top: max(8px, env(safe-area-inset-top));
   padding-right: max(12px, env(safe-area-inset-right));
   padding-bottom: max(14px, env(safe-area-inset-bottom));
   padding-left: max(12px, env(safe-area-inset-left));
+  transition: padding-top 0.2s ease;
+}
+
+:fullscreen .hud-container,
+body.is-fullscreen .hud-container {
+  padding-top: 4px;
 }
 
 .hud-top-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  position: relative;
   gap: 10px;
   width: 100%;
 }
 
 .hud-version {
+  position: absolute;
+  top: 2px;
+  left: 4px;
   pointer-events: auto;
   background: transparent;
   border: none;
-  color: #64748b;
+  color: #94a3b8;
   font-family: monospace;
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  padding: 4px 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 4px;
   cursor: pointer;
-  opacity: 0.75;
-  transition: opacity 0.15s ease;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  opacity: 0.9;
+  z-index: 20;
 }
 
 .hud-version:active {
@@ -107,18 +118,17 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(18, 23, 30, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  padding: 5px 10px;
-  clip-path: var(--chamfer-sm);
+  background: transparent;
+  border: none;
+  padding: 2px 6px;
 }
 
 .hud-health-bar {
   position: relative;
   width: 118px;
   height: 18px;
-  background: #0d1117;
-  border: 1px solid rgba(46, 196, 182, 0.4);
+  background: rgba(13, 17, 23, 0.7);
+  border: none;
   overflow: hidden;
   clip-path: var(--chamfer-sm);
 }
@@ -144,6 +154,12 @@ body {
   padding: 6px 10px;
   clip-path: var(--chamfer-sm);
   cursor: pointer;
+}
+
+.hud-btn-pause {
+  position: absolute;
+  top: 2px;
+  right: 4px;
 }
 
 .hud-btn-inventory svg,

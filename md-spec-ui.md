@@ -1,6 +1,6 @@
 # UI, HUD & Input Controller Specification
 ### Sub-Spoke Specification: js-ui-controller.js / styles.css
-### Version V3
+### Version V4
 
 ---
 
@@ -11,10 +11,10 @@ Governs the DOM-based tactical HUD overlay, dual touch-joystick mobile controls,
 
 ### 2. DOM STRUCTURE & SELECTORS
 * `.hud-container`: Pointer-events pass-through container over canvas.
-* `.hud-top-bar`: Responsive flex row pinned to top edge.
-  * `.hud-version`: Discrete `v0.0.1` label at top-left.
-  * `.hud-center-cluster`: Centered tactical cluster:
-    * `.hud-health-bar`: High-contrast green vitality meter (`100/100`).
+* `.hud-top-bar`: Responsive flex row pinned to top edge (shifts up in fullscreen mode).
+  * `.hud-version`: Micro monospace label pinned flush top-left (`top: 6px; left: 8px; font-size: 0.65rem`) with high-contrast text stroke outline.
+  * `.hud-center-cluster`: Sleek borderless centered cluster:
+    * `.hud-health-bar`: Clean borderless green vitality meter (`100/100`).
     * `.hud-cash`: Real-time formatted currency (`$0.00`).
     * `.hud-btn-inventory`: Tactical SVG pouch button.
   * `.hud-btn-pause`: Top-right pause button (`||`).

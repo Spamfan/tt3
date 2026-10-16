@@ -1,36 +1,30 @@
-// Tank Tycoon (prototype 3) - js-engine-render.js (v0.0.2)
-// Canvas Rendering Subsystem (Offscreen Tile Cache, Interpolated Camera, Combat FX)
+// Tank Tycoon (prototype 3) - js-engine-render.js (v0.0.3)
+// Photorealistic Contour World Rendering, Smooth Damped Camera & Combat FX
 
 import {
   CHUNK_TILES,
   TILE_SIZE,
   CHUNK_PIXEL_SIZE,
-  TILE_GRASS,
-  TILE_DIRT,
-  TILE_SAND,
-  TILE_WATER,
   TILE_BASE_CONCRETE,
   TILE_BASE_RESPAWN,
-  getChunk,
+  sampleWorldElevation,
   canPlaceBaseBlock
-} from "./js-engine-world.js?v=0.0.2";
+} from "./js-engine-world.js?v=0.0.3";
 
-export const MODULE_VERSION = "v0.0.2";
+export const MODULE_VERSION = "v0.0.3";
 
-// Render Constants & Tokens (md-spec-render.md §2)
+// Render Constants & Smooth Damped Kinematics
 export const CAMERA_ZOOM = 0.8;
 export const VIEWPORT_BUFFER_CHUNKS = 1;
 export const TRAJECTORY_LENGTH = 230;
-export const CAMERA_LERP = 0.08;
-export const CAMERA_LOOKAHEAD = 45;
+export const CAMERA_LERP = 0.05;
+export const CAMERA_LOOKAHEAD = 10;
 
 export const PALETTE = Object.freeze({
-  background: "#12171e",
+  background: "#3e4a1c",
   grass: "#475422",
-  grassDeep: "#3e4a1c",
-  dirt: "#635c49",
   sand: "#cbb185",
-  sandWarm: "#d8be96",
+  sandDark: "#bca073",
   water: "#182633",
   waterDeep: "#111c27",
   playerHull: "#465866",
@@ -50,108 +44,6 @@ let ctx = null;
 let viewportWidth = 1024;
 let viewportHeight = 768;
 let dpr = 1;
-const tilePatternCanvases = new Map();
-
-function buildOffscreenTileCache() {
-  tilePatternCanvases.clear();
-  if (typeof document === "undefined") return;
-
-  const createTileCanvas = (drawFn) => {
-    const off = document.createElement("canvas");
-    off.width = TILE_SIZE;
-    off.height = TILE_SIZE;
-    const octx = off.getContext("2d");
-    octx.imageSmoothingEnabled = false;
-    drawFn(octx, TILE_SIZE);
-    return off;
-  };
-
-  // 0: Grass (Muted military olive moss with subtle organic micro-stippling)
-  tilePatternCanvases.set(
-    TILE_GRASS,
-    createTileCanvas((c, s) => {
-      c.fillStyle = PALETTE.grass;
-      c.fillRect(0, 0, s, s);
-      c.fillStyle = PALETTE.grassDeep;
-      c.fillRect(6, 8, 5, 4);
-      c.fillRect(22, 18, 4, 5);
-      c.fillRect(36, 10, 5, 3);
-      c.fillRect(14, 34, 4, 4);
-      c.fillRect(32, 38, 5, 4);
-    })
-  );
-
-  // 1: Dirt (Desaturated basalt loam)
-  tilePatternCanvases.set(
-    TILE_DIRT,
-    createTileCanvas((c, s) => {
-      c.fillStyle = PALETTE.dirt;
-      c.fillRect(0, 0, s, s);
-      c.fillStyle = "#534c3c";
-      c.fillRect(10, 14, 6, 4);
-      c.fillRect(28, 24, 5, 5);
-      c.fillRect(18, 38, 4, 3);
-    })
-  );
-
-  // 2: Sand / Beach (Contoured natural shore tan)
-  tilePatternCanvases.set(
-    TILE_SAND,
-    createTileCanvas((c, s) => {
-      c.fillStyle = PALETTE.sand;
-      c.fillRect(0, 0, s, s);
-      c.fillStyle = PALETTE.sandWarm;
-      c.fillRect(8, 12, 7, 5);
-      c.fillRect(26, 30, 8, 4);
-      c.fillRect(34, 8, 5, 4);
-    })
-  );
-
-  // 3: Water (Deep navy / dark pond slate)
-  tilePatternCanvases.set(
-    TILE_WATER,
-    createTileCanvas((c, s) => {
-      c.fillStyle = PALETTE.water;
-      c.fillRect(0, 0, s, s);
-      c.fillStyle = PALETTE.waterDeep;
-      c.fillRect(10, 12, 14, 5);
-      c.fillRect(24, 28, 16, 5);
-    })
-  );
-
-  // 4: Base Concrete (Matte military reinforced carbon slab)
-  tilePatternCanvases.set(
-    TILE_BASE_CONCRETE,
-    createTileCanvas((c, s) => {
-      c.fillStyle = "#252b36";
-      c.fillRect(0, 0, s, s);
-      c.fillStyle = "#333b49";
-      c.fillRect(2, 2, s - 4, s - 4);
-      c.fillStyle = "#1e232c";
-      c.fillRect(4, 4, 3, 3);
-      c.fillRect(s - 7, 4, 3, 3);
-      c.fillRect(4, s - 7, 3, 3);
-      c.fillRect(s - 7, s - 7, 3, 3);
-    })
-  );
-
-  // 5: Base Respawn Pad (Matte slab + vitality cross)
-  tilePatternCanvases.set(
-    TILE_BASE_RESPAWN,
-    createTileCanvas((c, s) => {
-      c.fillStyle = "#202630";
-      c.fillRect(0, 0, s, s);
-      c.fillStyle = "#2c3442";
-      c.fillRect(2, 2, s - 4, s - 4);
-      c.fillStyle = "#2ec4b6";
-      c.fillRect(s / 2 - 3, 9, 6, s - 18);
-      c.fillRect(9, s / 2 - 3, s - 18, 6);
-      c.fillStyle = "#ffffff";
-      c.fillRect(s / 2 - 1.5, 11, 3, s - 22);
-      c.fillRect(11, s / 2 - 1.5, s - 22, 3);
-    })
-  );
-}
 
 export function resizeRenderer() {
   if (!canvasRef || !ctx) return;
@@ -165,7 +57,7 @@ export function resizeRenderer() {
   canvasRef.style.height = `${viewportHeight}px`;
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true;
 }
 
 export function initRenderer(canvasElement) {
@@ -173,8 +65,7 @@ export function initRenderer(canvasElement) {
   if (!canvasRef) return null;
 
   ctx = canvasRef.getContext("2d", { alpha: false });
-  ctx.imageSmoothingEnabled = false;
-  buildOffscreenTileCache();
+  ctx.imageSmoothingEnabled = true;
   resizeRenderer();
 
   if (typeof window !== "undefined") {
@@ -187,57 +78,84 @@ export function initRenderer(canvasElement) {
   };
 }
 
+// Multi-Pass Organic Contour World Rendering (Curved shorelines and natural lake basins)
 export function renderWorld(camera, chunks, worldState) {
   if (!ctx) return;
 
   const halfW = viewportWidth / 2;
   const halfH = viewportHeight / 2;
+
+  // Base Pass: Photorealistic Olive Field
+  ctx.fillStyle = PALETTE.grass;
+  ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+
+  // Resolution step for smooth contour evaluation (24px world grid)
+  const step = 24;
   const invZoom = 1 / CAMERA_ZOOM;
-  const minWorldX = camera.x - halfW * invZoom;
-  const maxWorldX = camera.x + halfW * invZoom;
-  const minWorldY = camera.y - halfH * invZoom;
-  const maxWorldY = camera.y + halfH * invZoom;
+  const minWorldX = Math.floor((camera.x - halfW * invZoom) / step) * step - step;
+  const maxWorldX = Math.ceil((camera.x + halfW * invZoom) / step) * step + step;
+  const minWorldY = Math.floor((camera.y - halfH * invZoom) / step) * step - step;
+  const maxWorldY = Math.ceil((camera.y + halfH * invZoom) / step) * step + step;
 
-  const startChunkX =
-    Math.floor(minWorldX / CHUNK_PIXEL_SIZE) - VIEWPORT_BUFFER_CHUNKS;
-  const endChunkX =
-    Math.floor(maxWorldX / CHUNK_PIXEL_SIZE) + VIEWPORT_BUFFER_CHUNKS;
-  const startChunkY =
-    Math.floor(minWorldY / CHUNK_PIXEL_SIZE) - VIEWPORT_BUFFER_CHUNKS;
-  const endChunkY =
-    Math.floor(maxWorldY / CHUNK_PIXEL_SIZE) + VIEWPORT_BUFFER_CHUNKS;
-
-  const drawSize = Math.ceil(TILE_SIZE * CAMERA_ZOOM);
-
-  for (let cy = startChunkY; cy <= endChunkY; cy++) {
-    for (let cx = startChunkX; cx <= endChunkX; cx++) {
-      const chunk = getChunk(cx, cy, worldState);
-      const chunkOriginX = cx * CHUNK_PIXEL_SIZE;
-      const chunkOriginY = cy * CHUNK_PIXEL_SIZE;
-
-      for (let ty = 0; ty < CHUNK_TILES; ty++) {
-        const worldY = chunkOriginY + ty * TILE_SIZE;
-        const screenY = Math.floor((worldY - camera.y) * CAMERA_ZOOM + halfH);
-        if (screenY + drawSize < 0 || screenY > viewportHeight) continue;
-
-        for (let tx = 0; tx < CHUNK_TILES; tx++) {
-          const worldX = chunkOriginX + tx * TILE_SIZE;
-          const screenX = Math.floor((worldX - camera.x) * CAMERA_ZOOM + halfW);
-          if (screenX + drawSize < 0 || screenX > viewportWidth) continue;
-
-          const tileId = chunk.tiles[ty * CHUNK_TILES + tx];
-          const patternCanvas =
-            tilePatternCanvases.get(tileId) ||
-            tilePatternCanvases.get(TILE_GRASS);
-          if (patternCanvas) {
-            ctx.drawImage(patternCanvas, screenX, screenY, drawSize, drawSize);
-          }
-        }
+  // Pass 2: Natural Sand Contours
+  ctx.fillStyle = PALETTE.sand;
+  for (let wy = minWorldY; wy <= maxWorldY; wy += step) {
+    for (let wx = minWorldX; wx <= maxWorldX; wx += step) {
+      const elev = sampleWorldElevation(wx, wy, worldState);
+      if (elev < 0.43) {
+        const sx = Math.floor((wx - camera.x) * CAMERA_ZOOM + halfW);
+        const sy = Math.floor((wy - camera.y) * CAMERA_ZOOM + halfH);
+        const size = Math.ceil(step * CAMERA_ZOOM) + 1;
+        ctx.beginPath();
+        ctx.arc(sx + size / 2, sy + size / 2, size * 0.72, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
   }
 
-  // Draw persistent Salvage Crates on the field
+  // Pass 3: Deep Water Lakes (Nested inside sand contours)
+  ctx.fillStyle = PALETTE.water;
+  for (let wy = minWorldY; wy <= maxWorldY; wy += step) {
+    for (let wx = minWorldX; wx <= maxWorldX; wx += step) {
+      const elev = sampleWorldElevation(wx, wy, worldState);
+      if (elev < 0.34) {
+        const sx = Math.floor((wx - camera.x) * CAMERA_ZOOM + halfW);
+        const sy = Math.floor((wy - camera.y) * CAMERA_ZOOM + halfH);
+        const size = Math.ceil(step * CAMERA_ZOOM) + 1;
+        ctx.beginPath();
+        ctx.arc(sx + size / 2, sy + size / 2, size * 0.72, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // Pass 4: Concrete & Respawn Bases (Strictly player-placed blocks)
+  const baseBlocks = worldState?.baseBlocks || [];
+  for (const block of baseBlocks) {
+    const sx = Math.floor((block.worldX - camera.x - TILE_SIZE) * CAMERA_ZOOM + halfW);
+    const sy = Math.floor((block.worldY - camera.y - TILE_SIZE) * CAMERA_ZOOM + halfH);
+    const span = Math.ceil(TILE_SIZE * 2 * CAMERA_ZOOM);
+
+    ctx.save();
+    ctx.fillStyle = "#252b36";
+    ctx.fillRect(sx, sy, span, span);
+    ctx.strokeStyle = "#384252";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sx, sy, span, span);
+
+    if (block.hasRespawnPad) {
+      ctx.fillStyle = PALETTE.vitalityGreen;
+      const crossW = Math.max(4, Math.floor(span * 0.18));
+      const crossL = Math.floor(span * 0.55);
+      const cx = sx + span / 2;
+      const cy = sy + span / 2;
+      ctx.fillRect(cx - crossW / 2, cy - crossL / 2, crossW, crossL);
+      ctx.fillRect(cx - crossL / 2, cy - crossW / 2, crossL, crossW);
+    }
+    ctx.restore();
+  }
+
+  // Pass 5: Persistent Salvage Crates on the field
   const crates = worldState?.salvageCrates || [];
   for (const crate of crates) {
     const sx = Math.floor((crate.x - camera.x) * CAMERA_ZOOM + halfW);
@@ -264,12 +182,7 @@ export function renderWorld(camera, chunks, worldState) {
   }
 }
 
-function drawSingleTank(
-  tank,
-  camera,
-  alpha,
-  isPlayer = false
-) {
+function drawSingleTank(tank, camera, alpha, isPlayer = false) {
   if (!ctx || !tank || tank.isDead) return;
 
   const halfW = viewportWidth / 2;
@@ -299,7 +212,7 @@ function drawSingleTank(
     ? tank.chassisCustomization?.turretColor || PALETTE.playerTurret
     : PALETTE.enemyTurret;
 
-  // Soft elliptical drop-shadow beneath tank
+  // Soft under-chassis drop shadow
   ctx.save();
   ctx.translate(screenX, screenY + 4 * CAMERA_ZOOM);
   ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
@@ -314,19 +227,16 @@ function drawSingleTank(
   ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
   ctx.rotate(tank.chassisAngle || 0);
 
-  // Treads (Deep matte carbon)
   ctx.fillStyle = "#14171c";
   ctx.fillRect(-22, -20, 44, 8);
   ctx.fillRect(-22, 12, 44, 8);
 
-  // Tread links
   ctx.fillStyle = "#272c36";
   for (let gx = -18; gx <= 16; gx += 7) {
     ctx.fillRect(gx, -19, 3, 6);
     ctx.fillRect(gx, 13, 3, 6);
   }
 
-  // Armored Hull
   ctx.fillStyle = hullColor;
   ctx.fillRect(-19, -13, 38, 26);
   ctx.strokeStyle = "#1b212b";
@@ -334,7 +244,7 @@ function drawSingleTank(
   ctx.strokeRect(-19, -13, 38, 26);
   ctx.restore();
 
-  // 2. Decoupled Turret Dome & Barrel
+  // 2. Turret Dome & Barrel
   ctx.save();
   ctx.translate(screenX, screenY);
   ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
@@ -342,7 +252,6 @@ function drawSingleTank(
 
   const recoilShift = -(tank.recoilOffset || 0);
 
-  // Barrel
   ctx.fillStyle = "#333d49";
   ctx.fillRect(6 + recoilShift, -4, 25, 8);
   ctx.strokeStyle = "#1b212b";
@@ -351,7 +260,6 @@ function drawSingleTank(
   ctx.fillStyle = "#11161d";
   ctx.fillRect(29 + recoilShift, -3, 3, 6);
 
-  // Turret Dome
   ctx.fillStyle = turretColor;
   ctx.beginPath();
   ctx.arc(recoilShift * 0.3, 0, 12, 0, Math.PI * 2);
@@ -360,14 +268,13 @@ function drawSingleTank(
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Subtle dome highlight
   ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
   ctx.beginPath();
   ctx.arc(recoilShift * 0.3 - 2, -2, 7, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
-  // Enemy overhead HP bar (Minimalist red bar matching screenshot)
+  // Minimalist enemy health bar
   if (!isPlayer && tank.hp < tank.maxHp) {
     const barW = 34 * CAMERA_ZOOM;
     const barH = 4 * CAMERA_ZOOM;
@@ -404,7 +311,7 @@ export function renderCombatFX(
   const halfW = viewportWidth / 2;
   const halfH = viewportHeight / 2;
 
-  // 1. Thin white dashed trajectory guide matching screenshot reference
+  // Thin trajectory guide
   if (player && !player.isDead) {
     const interpX =
       (player.prevX ?? player.x) + (player.x - (player.prevX ?? player.x)) * alpha;
@@ -438,7 +345,7 @@ export function renderCombatFX(
     ctx.restore();
   }
 
-  // 2. Dropped Scrap & Cash Pickups (Screenshot glowing cash badge)
+  // Dropped Scrap & Cash Pickups
   for (const item of pickups) {
     const sx = Math.floor((item.x - camera.x) * CAMERA_ZOOM + halfW);
     const sy = Math.floor((item.y - camera.y) * CAMERA_ZOOM + halfH);
@@ -479,7 +386,7 @@ export function renderCombatFX(
     ctx.restore();
   }
 
-  // 3. Projectiles
+  // Projectiles
   for (const proj of projectiles) {
     const px =
       (proj.prevX ?? proj.x) + (proj.x - (proj.prevX ?? proj.x)) * alpha;
@@ -497,7 +404,7 @@ export function renderCombatFX(
     ctx.restore();
   }
 
-  // 4. Muzzle Sparks & Shell Casings
+  // Muzzle Sparks & Shell Casings
   for (const pt of particles) {
     const sx = Math.floor((pt.x - camera.x) * CAMERA_ZOOM + halfW);
     const sy = Math.floor((pt.y - camera.y) * CAMERA_ZOOM + halfH);
@@ -518,7 +425,7 @@ export function renderCombatFX(
     ctx.restore();
   }
 
-  // 5. Rising Floating Text
+  // Floating Text
   for (const ft of floatingTexts) {
     const sx = Math.floor((ft.x - camera.x) * CAMERA_ZOOM + halfW);
     const sy = Math.floor((ft.y - camera.y) * CAMERA_ZOOM + halfH);
@@ -576,7 +483,7 @@ export function renderBaseInteractCue(camera, player, baseBlocks = []) {
 
   const halfW = viewportWidth / 2;
   const halfH = viewportHeight / 2;
-  const pulse = 0.65 + 0.35 * Math.sin( performance.now() * 0.006 );
+  const pulse = 0.65 + 0.35 * Math.sin(performance.now() * 0.006);
 
   for (const block of baseBlocks) {
     const inBlock =
@@ -619,20 +526,19 @@ export function renderFrame(renderState, alpha = 1) {
       (player.prevY ?? player.y) + (player.y - (player.prevY ?? player.y)) * alpha;
 
     const speed = Math.hypot(player.vx || 0, player.vy || 0);
-    const leadX =
-      speed > 5 ? (player.vx / speed) * CAMERA_LOOKAHEAD : 0;
-    const leadY =
-      speed > 5 ? (player.vy / speed) * CAMERA_LOOKAHEAD : 0;
+    const leadX = speed > 5 ? (player.vx / speed) * CAMERA_LOOKAHEAD : 0;
+    const leadY = speed > 5 ? (player.vy / speed) * CAMERA_LOOKAHEAD : 0;
 
-    const targetCamX = interpX + leadX;
-    const targetCamY = interpY + leadY;
+    // Damp recoil shake to 10%
+    const recoilShake = player.recoilOffset ? (player.recoilOffset * 0.1) : 0;
+    const recoilAngle = (player.turretAngle || 0) + Math.PI;
+
+    const targetCamX = interpX + leadX + Math.cos(recoilAngle) * recoilShake;
+    const targetCamY = interpY + leadY + Math.sin(recoilAngle) * recoilShake;
 
     camera.x += (targetCamX - camera.x) * CAMERA_LERP;
     camera.y += (targetCamY - camera.y) * CAMERA_LERP;
   }
-
-  ctx.fillStyle = PALETTE.background;
-  ctx.fillRect(0, 0, viewportWidth, viewportHeight);
 
   renderWorld(camera, renderState.world?.chunks, renderState.world);
   renderPlacementGhost(camera, renderState.placementState, renderState.world);

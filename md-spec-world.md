@@ -1,6 +1,6 @@
 # World Generation & Chunking Specification
 ### Sub-Spoke Specification: js-engine-world.js
-### Version V3
+### Version V4
 
 ---
 
@@ -42,8 +42,11 @@ Generates a deterministic procedural world based on coordinate chunking and pseu
   * Hostile Zone (`radius > 2` chunks): Enemy tank groups (1–3 tanks) spawn in open grass clearing points. Hostility and cluster density scale radially outward.
 
 #### `getTileAtWorldPos(worldX, worldY)`
-* Resolves world pixel coordinates into chunk indices `(chunkX, chunkY)` and local tile indices `(tileX, tileY)`.
-* Returns tile type ID and surface speed multiplier (`1.0x`, `0.7x`, or `0.25x`).
+* Computes surface speed dynamically from continuous noise field elevation (`sampleWorldElevation`):
+  * `elev < 0.34`: Water (`0.25x` speed).
+  * `elev < 0.43`: Sand (`0.7x` speed).
+  * `elev >= 0.43`: Grass/firm terrain (`1.0x` speed).
+* Player base blocks take precedence, granting `1.0x` firm concrete footing.
 
 #### `placeBaseBlock(gridOriginX, gridOriginY, blockType)`
 * Snaps to 2x2 tank dimensions (`96x96` px = 2x2 tiles).

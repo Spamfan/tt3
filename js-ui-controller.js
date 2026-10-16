@@ -1,7 +1,7 @@
-// Tank Tycoon (prototype 3) - js-ui-controller.js (v0.0.2)
+// Tank Tycoon (prototype 3) - js-ui-controller.js (v0.0.3)
 // UI, HUD, Split-Screen Touch Input, 4-Way Modal Dismissal & Manifest Table
 
-import { TILE_SIZE } from "./js-engine-world.js?v=0.0.1";
+import { TILE_SIZE } from "./js-engine-world.js?v=0.0.3";
 import {
   EVENT_RECIPE_UNLOCKED,
   EVENT_GAME_OVER,
@@ -9,7 +9,7 @@ import {
   EVENT_INVENTORY_UPDATED
 } from "./js-state-player.js?v=0.0.1";
 
-export const MODULE_VERSION = "v0.0.2";
+export const MODULE_VERSION = "v0.0.3";
 
 let activeModalStack = [];
 let onModalPauseStateChange = null;
@@ -22,12 +22,14 @@ export function toggleFullscreen() {
     document.fullscreenElement || document.webkitFullscreenElement;
 
   if (!isFull) {
+    document.body.classList.add("is-fullscreen");
     if (docEl.requestFullscreen) {
       docEl.requestFullscreen().catch(() => {});
     } else if (docEl.webkitRequestFullscreen) {
       docEl.webkitRequestFullscreen();
     }
   } else {
+    document.body.classList.remove("is-fullscreen");
     if (document.exitFullscreen) {
       document.exitFullscreen().catch(() => {});
     } else if (document.webkitExitFullscreen) {
