@@ -1,9 +1,9 @@
-// Tank Tycoon (prototype 3) - js-state-storage.js (v0.0.1)
+// Tank Tycoon (prototype 3) - js-state-storage.js (v0.0.2)
 // State Storage & Persistence Subsystem (IndexedDB)
 
-export const MODULE_VERSION = "v0.0.1";
+export const MODULE_VERSION = "v0.0.2";
 export const DB_NAME = "TankTycoonDB";
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 export const STORE_WORLD_CHUNKS = "world_chunks";
 export const STORE_PLAYER_STATE = "player_state";
@@ -200,15 +200,21 @@ export async function saveGameState(state, immediate = true) {
 
   return new Promise((resolve) => {
     try {
-      const tx = db.transaction(
-        [
-          STORE_PLAYER_STATE,
-          STORE_WORLD_CHUNKS,
-          STORE_BASE_BLOCKS,
-          STORE_SALVAGE_CRATES
-        ],
-        "readwrite"
+      const requiredStores = [
+        STORE_PLAYER_STATE,
+        STORE_WORLD_CHUNKS,
+        STORE_BASE_BLOCKS,
+        STORE_SALVAGE_CRATES
+      ];
+      const hasAllStores = requiredStores.every((s) =>
+        db.objectStoreNames.contains(s)
       );
+      if (!hasAllStores) {
+        resolve(false);
+        return;
+      }
+
+      const tx = db.transaction(requiredStores, "readwrite");
 
       const playerStore = tx.objectStore(STORE_PLAYER_STATE);
       const chunkStore = tx.objectStore(STORE_WORLD_CHUNKS);
@@ -262,15 +268,21 @@ export async function loadGameState() {
 
   return new Promise((resolve) => {
     try {
-      const tx = db.transaction(
-        [
-          STORE_PLAYER_STATE,
-          STORE_WORLD_CHUNKS,
-          STORE_BASE_BLOCKS,
-          STORE_SALVAGE_CRATES
-        ],
-        "readonly"
+      const requiredStores = [
+        STORE_PLAYER_STATE,
+        STORE_WORLD_CHUNKS,
+        STORE_BASE_BLOCKS,
+        STORE_SALVAGE_CRATES
+      ];
+      const hasAllStores = requiredStores.every((s) =>
+        db.objectStoreNames.contains(s)
       );
+      if (!hasAllStores) {
+        resolve(null);
+        return;
+      }
+
+      const tx = db.transaction(requiredStores, "readonly");
 
       Promise.all([
         readAllFromStore(tx, STORE_PLAYER_STATE),

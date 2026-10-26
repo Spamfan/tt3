@@ -1,4 +1,4 @@
-// Tank Tycoon (prototype 3) - js-engine-render.js (v0.0.3)
+// Tank Tycoon (prototype 3) - js-engine-render.js (v0.0.4)
 // Photorealistic Contour World Rendering, Smooth Damped Camera & Combat FX
 
 import {
@@ -8,10 +8,11 @@ import {
   TILE_BASE_CONCRETE,
   TILE_BASE_RESPAWN,
   sampleWorldElevation,
-  canPlaceBaseBlock
-} from "./js-engine-world.js?v=0.0.3";
+  canPlaceBaseBlock,
+  getChunk
+} from "./js-engine-world.js?v=0.0.4";
 
-export const MODULE_VERSION = "v0.0.3";
+export const MODULE_VERSION = "v0.0.4";
 
 // Render Constants & Smooth Damped Kinematics
 export const CAMERA_ZOOM = 0.8;
@@ -78,6 +79,40 @@ export function initRenderer(canvasElement) {
   };
 }
 
+function getChunkTerrainCanvas(chunk, worldState) {
+  if (chunk.terrainCanvas) return chunk.terrainCanvas;
+  const offscreen = document.createElement("canvas");
+  const res = 48;
+  offscreen.width = res;
+  offscreen.height = res;
+  const offCtx = offscreen.getContext("2d");
+  const imgData = offCtx.createImageData(res, res);
+  const data = imgData.data;
+
+  const originX = chunk.chunkX * CHUNK_PIXEL_SIZE;
+  const originY = chunk.chunkY * CHUNK_PIXEL_SIZE;
+  const step = CHUNK_PIXEL_SIZE / res;
+
+  for (let py = 0; py < res; py++) {
+    const wy = originY + (py + 0.5) * step;
+    for (let px = 0; px < res; px++) {
+      const wx = originX + (px + 0.5) * step;
+      const elev = sampleWorldElevation(wx, wy, worldState);
+      const idx = (py * res + px) * 4;
+      if (elev < 0.34) {
+        data[idx] = 24; data[idx + 1] = 38; data[idx + 2] = 51; data[idx + 3] = 255;
+      } else if (elev < 0.43) {
+        data[idx] = 203; data[idx + 1] = 177; data[idx + 2] = 133; data[idx + 3] = 255;
+      } else {
+        data[idx] = 71; data[idx + 1] = 84; data[idx + 2] = 34; data[idx + 3] = 255;
+      }
+    }
+  }
+  offCtx.putImageData(imgData, 0, 0);
+  chunk.terrainCanvas = offscreen;
+  return offscreen;
+}
+
 // Multi-Pass Organic Contour World Rendering (Curved shorelines and natural lake basins)
 export function renderWorld(camera, chunks, worldState) {
   if (!ctx) return;
@@ -85,47 +120,26 @@ export function renderWorld(camera, chunks, worldState) {
   const halfW = viewportWidth / 2;
   const halfH = viewportHeight / 2;
 
-  // Base Pass: Photorealistic Olive Field
   ctx.fillStyle = PALETTE.grass;
   ctx.fillRect(0, 0, viewportWidth, viewportHeight);
 
-  // Resolution step for smooth contour evaluation (24px world grid)
-  const step = 24;
   const invZoom = 1 / CAMERA_ZOOM;
-  const minWorldX = Math.floor((camera.x - halfW * invZoom) / step) * step - step;
-  const maxWorldX = Math.ceil((camera.x + halfW * invZoom) / step) * step + step;
-  const minWorldY = Math.floor((camera.y - halfH * invZoom) / step) * step - step;
-  const maxWorldY = Math.ceil((camera.y + halfH * invZoom) / step) * step + step;
+  const minChunkX = Math.floor((camera.x - halfW * invZoom) / CHUNK_PIXEL_SIZE) - VIEWPORT_BUFFER_CHUNKS;
+  const maxChunkX = Math.ceil((camera.x + halfW * invZoom) / CHUNK_PIXEL_SIZE) + VIEWPORT_BUFFER_CHUNKS;
+  const minChunkY = Math.floor((camera.y - halfH * invZoom) / CHUNK_PIXEL_SIZE) - VIEWPORT_BUFFER_CHUNKS;
+  const maxChunkY = Math.ceil((camera.y + halfH * invZoom) / CHUNK_PIXEL_SIZE) + VIEWPORT_BUFFER_CHUNKS;
 
-  // Pass 2: Natural Sand Contours
-  ctx.fillStyle = PALETTE.sand;
-  for (let wy = minWorldY; wy <= maxWorldY; wy += step) {
-    for (let wx = minWorldX; wx <= maxWorldX; wx += step) {
-      const elev = sampleWorldElevation(wx, wy, worldState);
-      if (elev < 0.43) {
-        const sx = Math.floor((wx - camera.x) * CAMERA_ZOOM + halfW);
-        const sy = Math.floor((wy - camera.y) * CAMERA_ZOOM + halfH);
-        const size = Math.ceil(step * CAMERA_ZOOM) + 1;
-        ctx.beginPath();
-        ctx.arc(sx + size / 2, sy + size / 2, size * 0.72, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }
-
-  // Pass 3: Deep Water Lakes (Nested inside sand contours)
-  ctx.fillStyle = PALETTE.water;
-  for (let wy = minWorldY; wy <= maxWorldY; wy += step) {
-    for (let wx = minWorldX; wx <= maxWorldX; wx += step) {
-      const elev = sampleWorldElevation(wx, wy, worldState);
-      if (elev < 0.34) {
-        const sx = Math.floor((wx - camera.x) * CAMERA_ZOOM + halfW);
-        const sy = Math.floor((wy - camera.y) * CAMERA_ZOOM + halfH);
-        const size = Math.ceil(step * CAMERA_ZOOM) + 1;
-        ctx.beginPath();
-        ctx.arc(sx + size / 2, sy + size / 2, size * 0.72, 0, Math.PI * 2);
-        ctx.fill();
-      }
+  for (let cy = minChunkY; cy <= maxChunkY; cy++) {
+    for (let cx = minChunkX; cx <= maxChunkX; cx++) {
+      const chunk = getChunk(cx, cy, worldState);
+      const cCanvas = getChunkTerrainCanvas(chunk, worldState);
+      const worldX = cx * CHUNK_PIXEL_SIZE;
+      const worldY = cy * CHUNK_PIXEL_SIZE;
+      const sx = Math.floor((worldX - camera.x) * CAMERA_ZOOM + halfW);
+      const sy = Math.floor((worldY - camera.y) * CAMERA_ZOOM + halfH);
+      const sw = Math.ceil(CHUNK_PIXEL_SIZE * CAMERA_ZOOM);
+      const sh = Math.ceil(CHUNK_PIXEL_SIZE * CAMERA_ZOOM);
+      ctx.drawImage(cCanvas, sx, sy, sw, sh);
     }
   }
 

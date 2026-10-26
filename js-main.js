@@ -1,17 +1,17 @@
-// Tank Tycoon (prototype 3) - js-main.js (v0.0.5)
+// Tank Tycoon (prototype 3) - js-main.js (v0.0.6)
 // Master Coordinator, Fixed-Step Accumulator Loop & Submodule Router
 
 import {
   MODULE_VERSION as MANIFEST_VERSION,
   getManifestData
-} from "./js-manifest.js?v=0.0.5";
+} from "./js-manifest.js?v=0.0.6";
 import {
   initStorage,
   loadGameState,
   saveGameState,
   wipeSaveData,
   generateWorldSeed
-} from "./js-state-storage.js?v=0.0.1";
+} from "./js-state-storage.js?v=0.0.2";
 import {
   initPlayerState,
   createEnemyTank,
@@ -28,7 +28,7 @@ import {
   placeBaseBlock,
   upgradeBaseBlockToRespawn,
   getBaseBlockAtWorldPos
-} from "./js-engine-world.js?v=0.0.3";
+} from "./js-engine-world.js?v=0.0.4";
 import {
   updatePhysics
 } from "./js-engine-physics.js?v=0.0.3";
@@ -36,7 +36,7 @@ import {
   initRenderer,
   renderFrame,
   CAMERA_ZOOM
-} from "./js-engine-render.js?v=0.0.3";
+} from "./js-engine-render.js?v=0.0.4";
 import {
   initUI,
   initInputListeners,
@@ -45,7 +45,7 @@ import {
   showToastBanner
 } from "./js-ui-controller.js?v=0.0.3";
 
-export const MODULE_VERSION = "v0.0.5";
+export const MODULE_VERSION = "v0.0.6";
 
 function createEventBus() {
   const listeners = new Map();

@@ -1,7 +1,7 @@
-// Tank Tycoon (prototype 3) - js-engine-world.js (v0.0.3)
+// Tank Tycoon (prototype 3) - js-engine-world.js (v0.0.4)
 // Continuous Organic Elevation Sampling, Seeded Chunking & Base Building
 
-export const MODULE_VERSION = "v0.0.3";
+export const MODULE_VERSION = "v0.0.4";
 
 export const CHUNK_TILES = 16;
 export const TILE_SIZE = 48;
@@ -146,7 +146,8 @@ export function getChunk(chunkX, chunkY, worldState = activeWorldState) {
     enemySpawns,
     modified: false,
     discovered: true,
-    clearedEnemies: false
+    clearedEnemies: false,
+    terrainCanvas: null
   };
 
   world.chunks.set(key, chunk);
